@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"z:\\\\srl-operations-ai\\\\src\\\\integrations\\\\wati\")"
+    ],
+    "additionalDirectories": [
+      "z:\\srl-operations-ai\\src\\integrations"
+    ]
+  }
+}

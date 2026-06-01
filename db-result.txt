@@ -1,0 +1,78 @@
+[
+  {
+    "company_id": 1,
+    "company_name": "Pradeep Scientific Distributors",
+    "status": "ACTIVE",
+    "created_at": "2026-03-05T18:36:04.488195",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 2,
+    "company_name": "Akash Lab Supply Pvt Ltd",
+    "status": "ACTIVE",
+    "created_at": "2026-03-05T18:36:04.488195",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 5,
+    "company_name": "Pradeep Chemicals",
+    "status": "active",
+    "created_at": "2026-03-05T21:15:59.887674",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 6,
+    "company_name": "Rohit Trading Co",
+    "status": "active",
+    "created_at": "2026-03-05T21:16:00.355655",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 3,
+    "company_name": "North Axis Distributors",
+    "status": "active",
+    "created_at": "2026-03-05T19:55:20.238473",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 4,
+    "company_name": "BluePeak Chemicals Trade",
+    "status": "active",
+    "created_at": "2026-03-05T19:55:20.717745",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 7,
+    "company_name": "SISCO",
+    "status": "ACTIVE",
+    "created_at": "2026-03-08T18:56:07.169903",
+    "erp_account_id": null,
+    "erp_account_ids": null
+  },
+  {
+    "company_id": 8,
+    "company_name": "Krisshna Enterprise, Guwahati",
+    "status": "active",
+    "created_at": "2026-03-09T07:13:19.203726",
+    "erp_account_id": 396,
+    "erp_account_ids": [
+      396
+    ]
+  },
+  {
+    "company_id": 9,
+    "company_name": "Viraj Life Science, Haridwar",
+    "status": "active",
+    "created_at": "2026-03-09T07:13:19.887427",
+    "erp_account_id": 38085,
+    "erp_account_ids": [
+      38085
+    ]
+  }
+]
