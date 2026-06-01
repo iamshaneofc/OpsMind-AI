@@ -1,54 +1,54 @@
-# SRL Operations AI - Demo Guide
+# OpsMind Operations AI - Demo Guide
 
 ## 🚀 Quick Start
 
-Welcome to the SRL Operations AI platform! This guide provides all the authentication credentials and role-based authorizations for testing the system.
+Welcome to the OpsMind Operations AI platform! This guide provides all the authentication credentials and role-based authorizations for testing the system.
 
 ---
 
 ## 🔐 Authentication Credentials
 
-**All demo users share the same password:** `Srl@12345`
+**All demo users share the same password:** `OpsMind@12345`
 
 ### Super Admin
-- **Email:** `super.admin@srlchemicals.com`
-- **Password:** `Srl@12345`
+- **Email:** `super.admin@opsmindchemicals.com`
+- **Password:** `OpsMind@12345`
 - **Role:** Super Admin
 - **Access Level:** Full system access
 
 ### Distributors
 
-#### 1. SRL Distributor (North Axis Distributors)
-- **Email:** `distributor@srlchemicals.com`
-- **Password:** `Srl@12345`
+#### 1. OpsMind Distributor (North Axis Distributors)
+- **Email:** `distributor@opsmindchemicals.com`
+- **Password:** `OpsMind@12345`
 - **Role:** Distributor
 - **Company:** North Axis Distributors
 
 #### 2. Pradeep (Pradeep Chemicals)
-- **Email:** `pradeep@srlchemicals.com`
-- **Password:** `Srl@12345`
+- **Email:** `pradeep@opsmindchemicals.com`
+- **Password:** `OpsMind@12345`
 - **Role:** Distributor
 - **Company:** Pradeep Chemicals
 
 #### 3. Rohit (Rohit Trading Co)
-- **Email:** `rohit@srlchemicals.com`
-- **Password:** `Srl@12345`
+- **Email:** `rohit@opsmindchemicals.com`
+- **Password:** `OpsMind@12345`
 - **Role:** Distributor
 - **Company:** Rohit Trading Co
 
 ### Warehouse Incharge
 
 #### 1. Delhi Central Warehouse
-- **Email:** `warehouse@srlchemicals.com`
-- **Password:** `Srl@12345`
+- **Email:** `warehouse@opsmindchemicals.com`
+- **Password:** `OpsMind@12345`
 - **Role:** Warehouse Incharge
 - **Warehouse:** Delhi Central
 
 #### 2. Mumbai Central Warehouse
-- **Email:** `warehouse.mumbai@srlchemicals.com`
-- **Password:** `Srl@12345`
+- **Email:** `warehouse.mumbai@opsmindchemicals.com`
+- **Password:** `OpsMind@12345`
 - **Role:** Warehouse Incharge
-- **Warehouse:** SRL Central Warehouse (Mumbai)
+- **Warehouse:** OpsMind Central Warehouse (Mumbai)
 
 ---
 
@@ -171,40 +171,40 @@ Welcome to the SRL Operations AI platform! This guide provides all the authentic
 
 ### For Distributors to Test:
 
-**Pradeep (pradeep@srlchemicals.com):**
-- SRL-3001 (In Preparation)
-- SRL-3002 (Dispatch Ready)
-- SRL-3003 (In Transit)
+**Pradeep (pradeep@opsmindchemicals.com):**
+- OpsMind-3001 (In Preparation)
+- OpsMind-3002 (Dispatch Ready)
+- OpsMind-3003 (In Transit)
 
-**Rohit (rohit@srlchemicals.com):**
-- SRL-4001 (In Preparation)
-- SRL-4002 (Awaiting Factory - Delayed)
-- SRL-4003 (Dispatch Ready)
+**Rohit (rohit@opsmindchemicals.com):**
+- OpsMind-4001 (In Preparation)
+- OpsMind-4002 (Awaiting Factory - Delayed)
+- OpsMind-4003 (Dispatch Ready)
 
-**SRL Distributor (distributor@srlchemicals.com):**
-- SRL-1024 (In Preparation)
-- SRL-2034 (Dispatch Ready)
+**OpsMind Distributor (distributor@opsmindchemicals.com):**
+- OpsMind-1024 (In Preparation)
+- OpsMind-2034 (Dispatch Ready)
 
 ---
 
 ## 🧪 Testing Scenarios
 
 ### Test Distributor Access Control:
-1. Login as `pradeep@srlchemicals.com`
+1. Login as `pradeep@opsmindchemicals.com`
 2. Try chatbot query: "Check inventory in Mumbai"
    - **Expected:** AI should decline and explain distributors cannot access inventory
 3. Try chatbot query: "Show my orders"
-   - **Expected:** Should show only Pradeep's orders (SRL-3001, SRL-3002, SRL-3003)
+   - **Expected:** Should show only Pradeep's orders (OpsMind-3001, OpsMind-3002, OpsMind-3003)
 
 ### Test Warehouse Access Control:
-1. Login as `warehouse@srlchemicals.com` (Delhi Central)
+1. Login as `warehouse@opsmindchemicals.com` (Delhi Central)
 2. Try chatbot query: "Check inventory"
    - **Expected:** Should show inventory for Delhi Central warehouse only
 3. Try chatbot query: "Show orders"
    - **Expected:** Should show orders assigned to Delhi Central warehouse
 
 ### Test Super Admin Access:
-1. Login as `super.admin@srlchemicals.com`
+1. Login as `super.admin@opsmindchemicals.com`
 2. Try chatbot query: "Show all delayed orders"
    - **Expected:** Should show delayed orders from all companies
 3. Try chatbot query: "Check inventory in Mumbai"
@@ -236,7 +236,7 @@ Welcome to the SRL Operations AI platform! This guide provides all the authentic
 
 ## 📝 Notes
 
-- All passwords are: `Srl@12345`
+- All passwords are: `OpsMind@12345`
 - The system uses Supabase for authentication and database
 - Chatbot conversations are isolated per user session
 - All data updates in real-time using Supabase Realtime subscriptions
@@ -247,7 +247,7 @@ Welcome to the SRL Operations AI platform! This guide provides all the authentic
 ## 🆘 Troubleshooting
 
 **Issue:** Cannot login
-- **Solution:** Ensure you're using the correct email and password (`Srl@12345`)
+- **Solution:** Ensure you're using the correct email and password (`OpsMind@12345`)
 
 **Issue:** Chatbot not responding
 - **Solution:** Check browser console for errors, ensure OpenAI API key is configured

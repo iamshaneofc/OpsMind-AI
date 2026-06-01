@@ -1,5 +1,5 @@
 -- Migration: Add user_whatsapp_accounts table
--- Purpose: Map WhatsApp phone numbers to SRL users for authentication
+-- Purpose: Map WhatsApp phone numbers to OpsMind users for authentication
 -- Created: 2025-05-14
 
 -- Create the user_whatsapp_accounts table
@@ -132,7 +132,7 @@ CREATE TRIGGER update_user_whatsapp_accounts_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Add comment for documentation
-COMMENT ON TABLE public.user_whatsapp_accounts IS 'Maps WhatsApp phone numbers to SRL users for WhatsApp authentication';
+COMMENT ON TABLE public.user_whatsapp_accounts IS 'Maps WhatsApp phone numbers to OpsMind users for WhatsApp authentication';
 COMMENT ON COLUMN public.user_whatsapp_accounts.whatsapp_number IS 'Normalized WhatsApp number (without + prefix)';
 COMMENT ON COLUMN public.user_whatsapp_accounts.is_verified IS 'Whether the WhatsApp number has been verified via OTP';
 COMMENT ON COLUMN public.user_whatsapp_accounts.is_active IS 'Whether the WhatsApp link is active (can be deactivated)';

@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SRL AI",
+  title: "OpsMind AI",
   description: "Enterprise operations intelligence",
 };
 

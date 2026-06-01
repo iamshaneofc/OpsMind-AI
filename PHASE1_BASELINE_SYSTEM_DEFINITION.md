@@ -2,7 +2,7 @@
 
 ## Context
 
-SRL's portal already exposes ordering and visibility through ERP-connected workflows, but field execution shows that the current experience is not practical enough. The core problem is not lack of data; it is:
+OpsMind's portal already exposes ordering and visibility through ERP-connected workflows, but field execution shows that the current experience is not practical enough. The core problem is not lack of data; it is:
 
 - trustworthy, low-friction access to order truth,
 - structured updates from internal teams,
@@ -120,7 +120,7 @@ Phase 1 exposes only the following distributor-facing lifecycle states:
 
 Meaning:
 
-- order accepted into SRL system,
+- order accepted into OpsMind system,
 - validation/credit/compliance checks complete or in progress.
 
 User-facing message:

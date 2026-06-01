@@ -32,7 +32,7 @@ export async function processChatMessage(
   // Build user profile from context
   const profile: UserProfile = {
     user_id: context.userId ?? 0,
-    email: `${context.phoneNumber}@whatsapp.srl`,
+    email: `${context.phoneNumber}@whatsapp.opsmind`,
     full_name: 'WhatsApp User',
     role_id: mapRoleToRoleId(context.role || 'distributor'),
     role: context.role as 'super_admin' | 'distributor' | 'warehouse' || 'distributor',

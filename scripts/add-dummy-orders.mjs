@@ -45,19 +45,19 @@ async function addDummyOrders() {
     const { data: warehouses, error: warehousesError } = await admin
       .from("warehouses")
       .select("warehouse_id, warehouse_name")
-      .in("warehouse_id", [1, 3]) // SRL Central Warehouse and Delhi Central
+      .in("warehouse_id", [1, 3]) // OpsMind Central Warehouse and Delhi Central
       .order("warehouse_id");
 
     if (warehousesError) throw warehousesError;
 
-    const srlCentral = warehouses?.find((w) => w.warehouse_id === 1);
+    const opsmindCentral = warehouses?.find((w) => w.warehouse_id === 1);
     const delhiCentral = warehouses?.find((w) => w.warehouse_id === 3);
 
-    if (!srlCentral || !delhiCentral) {
+    if (!opsmindCentral || !delhiCentral) {
       throw new Error("Required warehouses not found");
     }
 
-    console.log(`  ✓ Found: ${srlCentral.warehouse_name} (ID: ${srlCentral.warehouse_id})`);
+    console.log(`  ✓ Found: ${opsmindCentral.warehouse_name} (ID: ${opsmindCentral.warehouse_id})`);
     console.log(`  ✓ Found: ${delhiCentral.warehouse_name} (ID: ${delhiCentral.warehouse_id})`);
 
     // Step 3: Get some products
@@ -93,9 +93,9 @@ async function addDummyOrders() {
     // Krisshna Enterprise Orders
     orders.push(
       {
-        order_number: "SRL-2026-001",
+        order_number: "OpsMind-2026-001",
         company_id: krisshnaCompany.company_id,
-        warehouse_id: srlCentral.warehouse_id,
+        warehouse_id: opsmindCentral.warehouse_id,
         status: "IN_PREPARATION",
         order_status: "Work in Progress",
         order_date: daysFromNow(-5),
@@ -108,7 +108,7 @@ async function addDummyOrders() {
         delivery_location: "Guwahati",
       },
       {
-        order_number: "SRL-2026-002",
+        order_number: "OpsMind-2026-002",
         company_id: krisshnaCompany.company_id,
         warehouse_id: delhiCentral.warehouse_id,
         status: "DISPATCH_READY",
@@ -123,9 +123,9 @@ async function addDummyOrders() {
         delivery_location: "Guwahati",
       },
       {
-        order_number: "SRL-2026-003",
+        order_number: "OpsMind-2026-003",
         company_id: krisshnaCompany.company_id,
-        warehouse_id: srlCentral.warehouse_id,
+        warehouse_id: opsmindCentral.warehouse_id,
         status: "DELIVERED",
         order_status: "Delivered",
         order_date: daysFromNow(-15),
@@ -138,7 +138,7 @@ async function addDummyOrders() {
         delivery_location: "Guwahati",
       },
       {
-        order_number: "SRL-2026-004",
+        order_number: "OpsMind-2026-004",
         company_id: krisshnaCompany.company_id,
         warehouse_id: delhiCentral.warehouse_id,
         status: "IN_TRANSIT",
@@ -153,9 +153,9 @@ async function addDummyOrders() {
         delivery_location: "Guwahati",
       },
       {
-        order_number: "SRL-2026-005",
+        order_number: "OpsMind-2026-005",
         company_id: krisshnaCompany.company_id,
-        warehouse_id: srlCentral.warehouse_id,
+        warehouse_id: opsmindCentral.warehouse_id,
         status: "AWAITING_FACTORY",
         order_status: "Work in Progress",
         order_date: daysFromNow(-3),
@@ -172,9 +172,9 @@ async function addDummyOrders() {
     // Viraj Life Science Orders
     orders.push(
       {
-        order_number: "SRL-2026-101",
+        order_number: "OpsMind-2026-101",
         company_id: virajCompany.company_id,
-        warehouse_id: srlCentral.warehouse_id,
+        warehouse_id: opsmindCentral.warehouse_id,
         status: "IN_PREPARATION",
         order_status: "Work in Progress",
         order_date: daysFromNow(-7),
@@ -187,7 +187,7 @@ async function addDummyOrders() {
         delivery_location: "Haridwar",
       },
       {
-        order_number: "SRL-2026-102",
+        order_number: "OpsMind-2026-102",
         company_id: virajCompany.company_id,
         warehouse_id: delhiCentral.warehouse_id,
         status: "DISPATCH_READY",
@@ -202,9 +202,9 @@ async function addDummyOrders() {
         delivery_location: "Haridwar",
       },
       {
-        order_number: "SRL-2026-103",
+        order_number: "OpsMind-2026-103",
         company_id: virajCompany.company_id,
-        warehouse_id: srlCentral.warehouse_id,
+        warehouse_id: opsmindCentral.warehouse_id,
         status: "DELIVERED",
         order_status: "Delivered",
         order_date: daysFromNow(-20),
@@ -217,7 +217,7 @@ async function addDummyOrders() {
         delivery_location: "Haridwar",
       },
       {
-        order_number: "SRL-2026-104",
+        order_number: "OpsMind-2026-104",
         company_id: virajCompany.company_id,
         warehouse_id: delhiCentral.warehouse_id,
         status: "IN_PREPARATION",
@@ -232,9 +232,9 @@ async function addDummyOrders() {
         delivery_location: "Haridwar",
       },
       {
-        order_number: "SRL-2026-105",
+        order_number: "OpsMind-2026-105",
         company_id: virajCompany.company_id,
-        warehouse_id: srlCentral.warehouse_id,
+        warehouse_id: opsmindCentral.warehouse_id,
         status: "CANCELLED",
         order_status: "Cancelled",
         order_date: daysFromNow(-8),

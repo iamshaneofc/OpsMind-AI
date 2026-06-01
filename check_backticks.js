@@ -1,5 +1,5 @@
 const fs = require('fs');
-const content = fs.readFileSync('z:/srl-operations-ai/src/app/api/chat/route.ts', 'utf8');
+const content = fs.readFileSync('z:/opsmind-operations-ai/src/app/api/chat/route.ts', 'utf8');
 const lines = content.split('\n');
 lines.forEach((line, i) => {
   const matches = line.matchAll(/([^\\]|^)`/g);

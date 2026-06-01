@@ -4,7 +4,7 @@
  * Handles incoming webhook events from Wati WhatsApp API.
  * Routes events to appropriate handlers and integrates with existing AI engine.
  *
- * Flow: Webhook → Auth → Session → AI Adapter → SRL AI Engine → ERP Tools → Response
+ * Flow: Webhook → Auth → Session → AI Adapter → OpsMind AI Engine → ERP Tools → Response
  */
 
 import type { WatiWebhookEvent, WatiResponse } from './types';
@@ -99,11 +99,11 @@ What would you like to know?`;
     const session = createSession(event.phone);
     updateSessionState(session.sessionId, 'NEW_USER');
 
-    const newUserMessage = `Welcome to SRL Operations AI! 👋
+    const newUserMessage = `Welcome to OpsMind Operations AI! 👋
 
 To use WhatsApp access, please register via our web application first.
 
-Visit: ${process.env.NEXT_PUBLIC_APP_URL || 'the SRL portal'}
+Visit: ${process.env.NEXT_PUBLIC_APP_URL || 'the OpsMind portal'}
 
 Existing users: Your account will be automatically linked.`;
 
@@ -187,7 +187,7 @@ async function handleChatMessage(
     })),
   };
 
-  // Process through the AI adapter (connects to real SRL AI engine)
+  // Process through the AI adapter (connects to real OpsMind AI engine)
   const aiResponse = await processWatiChatMessage(chatRequest, chatContext);
 
   console.log(`[Wati Webhook] AI response received: ${aiResponse.text.substring(0, 100)}...`);
@@ -250,7 +250,7 @@ What would you like to know?`;
     const redirectMessage = `I couldn't find an account linked to this WhatsApp number.
 
 Please register via our web platform first:
-${process.env.NEXT_PUBLIC_APP_URL || 'Visit the SRL portal'}
+${process.env.NEXT_PUBLIC_APP_URL || 'Visit the OpsMind portal'}
 
 After registering, your WhatsApp will be automatically linked.`;
 
@@ -307,7 +307,7 @@ async function handleOptIn(event: WatiWebhookEvent): Promise<WatiResponse> {
 
   const config = createWatiClientConfig();
   if (config) {
-    const message = `Thanks for opting in to SRL Operations AI WhatsApp! 🎉
+    const message = `Thanks for opting in to OpsMind Operations AI WhatsApp! 🎉
 
 You can now receive order updates and query your data via WhatsApp.`;
     await sendWatiMessage(event.phone, message, config);

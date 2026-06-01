@@ -20,7 +20,7 @@ export function Sidebar({ role }: SidebarProps) {
       <div className="mb-8 flex items-center gap-3 rounded-lg border border-teal-500/20 bg-teal-500/10 p-3">
         <Sparkles className="text-teal-500" size={20} />
         <div>
-          <p className="text-sm font-semibold tracking-tight">SRL AI</p>
+          <p className="text-sm font-semibold tracking-tight">OpsMind AI</p>
           <p className="text-[11px] tracking-wide text-muted-foreground">Intelligence core</p>
         </div>
       </div>

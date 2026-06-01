@@ -222,7 +222,7 @@ const result = await startOnboarding('+919999999999', 'wati_session_123');
 
 result = {
   success: true,
-  message: 'Welcome to SRL Operations AI! To link your WhatsApp, please enter your email...',
+  message: 'Welcome to OpsMind Operations AI! To link your WhatsApp, please enter your email...',
   nextState: 'WAITING_FOR_EMAIL'
 };
 ```
@@ -296,7 +296,7 @@ ON CONFLICT (whatsapp_number) DO UPDATE SET
 RESEND_API_KEY=re_123456789
 
 # Optional: Custom sender email
-OTP_FROM_EMAIL=whatsapp@srloperations.ai
+OTP_FROM_EMAIL=whatsapp@opsmindoperations.ai
 ```
 
 ## Files

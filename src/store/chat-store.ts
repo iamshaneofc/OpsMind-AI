@@ -20,7 +20,7 @@ interface ChatStore {
   loadMessages: () => void;
 }
 
-const STORAGE_KEY = "srl-chat-messages";
+const STORAGE_KEY = "opsmind-chat-messages";
 
 // Helper functions for localStorage
 const saveMessages = (userId: string | null, messages: ChatMessage[]) => {

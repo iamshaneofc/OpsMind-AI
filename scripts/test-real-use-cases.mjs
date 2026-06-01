@@ -18,7 +18,7 @@ const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE, {
 
 /**
  * Real Use Cases Test with Actual Data
- * Tests all scenarios from the requirements document with real SRL data
+ * Tests all scenarios from the requirements document with real OpsMind data
  */
 
 const testResults = {
@@ -961,7 +961,7 @@ async function testUseCase10_MultipleInvoicesPerOrder() {
 
 async function runAllUseCaseTests() {
   console.log("=".repeat(80));
-  console.log("REAL USE CASES TEST - WITH ACTUAL SRL DATA");
+  console.log("REAL USE CASES TEST - WITH ACTUAL OpsMind DATA");
   console.log("=".repeat(80));
   console.log(`Testing at: ${new Date().toISOString()}`);
   console.log(`Supabase URL: ${SUPABASE_URL}`);

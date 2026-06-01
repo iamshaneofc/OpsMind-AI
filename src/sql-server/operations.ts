@@ -19,7 +19,7 @@ import { querySqlServer } from "./client";
 /** ERP sales-order voucher style: 6.105.260218.2 or 11.105.260218.30 (optional extra numeric segment). */
 export function looksLikeErpSalesOrderVoucherNumber(value: string): boolean {
   const v = value.trim();
-  return /^\d+\.\d+\.\d+\.\d+(?:\.\d+)?$/.test(v) || /^SRL-/i.test(v);
+  return /^\d+\.\d+\.\d+\.\d+(?:\.\d+)?$/.test(v) || /^OpsMind-/i.test(v);
 }
 
 /**

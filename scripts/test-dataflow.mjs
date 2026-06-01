@@ -6,7 +6,7 @@ loadLocalEnv();
 const BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 const SUPABASE_URL = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
 const SUPABASE_ANON = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-const PASSWORD = "Srl@12345";
+const PASSWORD = "OpsMind@12345";
 
 function assert(condition, message) {
   if (!condition) {
@@ -26,14 +26,14 @@ async function authedClient(email) {
 }
 
 async function run() {
-  const superAdmin = await authedClient("super.admin@srlchemicals.com");
-  const distributor = await authedClient("distributor@srlchemicals.com");
-  const warehouse = await authedClient("warehouse@srlchemicals.com");
+  const superAdmin = await authedClient("super.admin@opsmindchemicals.com");
+  const distributor = await authedClient("distributor@opsmindchemicals.com");
+  const warehouse = await authedClient("warehouse@opsmindchemicals.com");
 
   const { data: distributorUserRows, error: distUserErr } = await superAdmin.client
     .from("users")
     .select("user_id,company_id")
-    .eq("email", "distributor@srlchemicals.com")
+    .eq("email", "distributor@opsmindchemicals.com")
     .limit(1);
   if (distUserErr) throw distUserErr;
   const distributorUser = distributorUserRows?.[0];
@@ -42,7 +42,7 @@ async function run() {
   const { data: warehouseUserRows, error: whUserErr } = await superAdmin.client
     .from("users")
     .select("user_id,warehouse_id")
-    .eq("email", "warehouse@srlchemicals.com")
+    .eq("email", "warehouse@opsmindchemicals.com")
     .limit(1);
   if (whUserErr) throw whUserErr;
   const warehouseUser = warehouseUserRows?.[0];
@@ -76,7 +76,7 @@ async function run() {
       "Content-Type": "application/json",
       Authorization: `Bearer ${distributor.token}`,
     },
-    body: JSON.stringify({ message: "Where is order SRL-1024?" }),
+    body: JSON.stringify({ message: "Where is order OpsMind-1024?" }),
   });
 
   assert(chatApi.ok, `Chat API failed: ${chatApi.status}`);

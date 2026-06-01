@@ -16,13 +16,13 @@ export const aiTools: ChatCompletionTool[] = [
     function: {
       name: "getOrderStatus",
       description:
-        "Get status and line items for a SALES ORDER. Accepts ERP voucher numbers (e.g., 6.105.260218.2, SRL-2026-001) OR numeric sales_order_id values (e.g., 830401). Use this first for minimal/ambiguous numeric inputs before invoice tools.",
+        "Get status and line items for a SALES ORDER. Accepts ERP voucher numbers (e.g., 6.105.260218.2, OpsMind-2026-001) OR numeric sales_order_id values (e.g., 830401). Use this first for minimal/ambiguous numeric inputs before invoice tools.",
       parameters: {
         type: "object",
         properties: {
           orderNumber: {
             type: "string",
-            description: "Sales order identifier: voucher_number (e.g., 6.105.260218.2, SRL-1024) OR numeric sales_order_id (e.g., 830401)",
+            description: "Sales order identifier: voucher_number (e.g., 6.105.260218.2, OpsMind-1024) OR numeric sales_order_id (e.g., 830401)",
           },
         },
         required: ["orderNumber"],

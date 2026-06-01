@@ -38,14 +38,14 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-md p-6">
-      <CardTitle className="mb-1 text-2xl tracking-tight">SRL AI</CardTitle>
-      <CardDescription className="mb-6">Enterprise operations intelligence for SRL Chemicals</CardDescription>
+      <CardTitle className="mb-1 text-2xl tracking-tight">OpsMind AI</CardTitle>
+      <CardDescription className="mb-6">Enterprise operations intelligence for OpsMind Chemicals</CardDescription>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="mb-1 block text-xs text-muted-foreground">Email</label>
           <Input
             type="email"
-            placeholder="name@srlchemicals.com"
+            placeholder="name@opsmindchemicals.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

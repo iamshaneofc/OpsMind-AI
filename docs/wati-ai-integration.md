@@ -1,6 +1,6 @@
 # Wati AI Integration
 
-This document describes how WhatsApp messages flow through the existing SRL AI chatbot engine.
+This document describes how WhatsApp messages flow through the existing OpsMind AI chatbot engine.
 
 ## Core Principle
 
@@ -217,7 +217,7 @@ The WhatsApp channel uses the **exact same system prompt** as the web chat:
 
 ```typescript
 // In wati-chat-adapter.ts
-const WHATSAPP_SYSTEM_PROMPT = `You are SRL Operations AI...`;
+const WHATSAPP_SYSTEM_PROMPT = `You are OpsMind Operations AI...`;
 // This is a subset of the full web chat prompt
 // Full prompt: src/app/api/chat/route.ts SYSTEM_PROMPT
 ```

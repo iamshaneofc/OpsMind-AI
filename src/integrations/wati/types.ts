@@ -70,7 +70,7 @@ export interface WatiContact {
 }
 
 // ============================================================================
-// SRL SESSION TYPES (for chat context)
+// OpsMind SESSION TYPES (for chat context)
 // ============================================================================
 
 export interface WatiChatSession {

@@ -26,7 +26,7 @@ The SQL query `extract_latest_20_invoices.sql` extracts the latest 20 invoices w
 To extract data:
 
 ```bash
-cd "C:\SRL bot"
+cd "C:\OpsMind bot"
 sqlcmd -S localhost -E -C -d SiscoERP -i "extract_latest_20_invoices.sql" -W -s "," -h -1 -o "latest_20_invoices.csv"
 ```
 
@@ -52,7 +52,7 @@ The migration creates:
 Install the required npm package for CSV parsing:
 
 ```bash
-cd srl-operations-ai
+cd opsmind-operations-ai
 npm install
 ```
 
@@ -71,11 +71,11 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 Run the import script:
 
 ```bash
-# From srl-operations-ai directory
+# From opsmind-operations-ai directory
 npm run import:invoices
 
 # Or with custom CSV path
-node scripts/import-invoices.mjs "C:\SRL bot\latest_20_invoices.csv"
+node scripts/import-invoices.mjs "C:\OpsMind bot\latest_20_invoices.csv"
 ```
 
 The script will:

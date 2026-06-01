@@ -94,7 +94,7 @@ export async function sendOrderStatusNotification(
   status: string,
   config: WatiClientConfig
 ): Promise<WatiMessageResponse> {
-  const message = `📦 Order Update\n\nOrder: ${orderNumber}\nStatus: ${status}\n\nCheck SRL Operations AI for details.`;
+  const message = `📦 Order Update\n\nOrder: ${orderNumber}\nStatus: ${status}\n\nCheck OpsMind Operations AI for details.`;
   return sendWatiMessage(phoneNumber, message, config);
 }
 

@@ -10,7 +10,7 @@ const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const PASSWORD = "Srl@12345";
+const PASSWORD = "OpsMind@12345";
 
 // ============================================================================
 // Helper Functions
@@ -311,7 +311,7 @@ async function setupAccountsFromInvoices() {
     // Step 3: Set up warehouses
     console.log("\nStep 3: Setting up warehouses...");
     const targetWarehouses = [
-      { name: "SRL Central Warehouse", location: "Mumbai" },
+      { name: "OpsMind Central Warehouse", location: "Mumbai" },
       { name: "Delhi Central", location: "Delhi" },
     ];
 
@@ -328,8 +328,8 @@ async function setupAccountsFromInvoices() {
     for (let i = 0; i < companies.length; i++) {
       const company = companies[i];
       const email = i === 0 
-        ? "krisshna.enterprise@srlchemicals.com"
-        : "viraj.lifescience@srlchemicals.com";
+        ? "krisshna.enterprise@opsmindchemicals.com"
+        : "viraj.lifescience@opsmindchemicals.com";
       const fullName = i === 0
         ? "Krisshna Enterprise Admin"
         : "Viraj Life Science Admin";
@@ -363,10 +363,10 @@ async function setupAccountsFromInvoices() {
     for (let i = 0; i < warehouses.length; i++) {
       const warehouse = warehouses[i];
       const email = i === 0
-        ? "warehouse.central@srlchemicals.com"
-        : "warehouse.delhi@srlchemicals.com";
+        ? "warehouse.central@opsmindchemicals.com"
+        : "warehouse.delhi@opsmindchemicals.com";
       const fullName = i === 0
-        ? "SRL Central Warehouse Incharge"
+        ? "OpsMind Central Warehouse Incharge"
         : "Delhi Central Warehouse Incharge";
 
       console.log(`\n  Creating warehouse account for: ${warehouse.displayName}`);

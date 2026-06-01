@@ -799,7 +799,7 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
                 animate={{ opacity: 1, y: 0 }}
                 className="self-start flex items-center gap-3 w-fit rounded-2xl rounded-tl-sm bg-muted/40 px-5 py-3 text-sm text-muted-foreground border border-border/30"
               >
-                <span>SRL AI is analyzing</span>
+                <span>OpsMind AI is analyzing</span>
                 <span className="flex gap-0.5 mt-1">
                   <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0 }} className="h-1 w-1 bg-muted-foreground rounded-full"></motion.span>
                   <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.2 }} className="h-1 w-1 bg-muted-foreground rounded-full"></motion.span>

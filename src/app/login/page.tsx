@@ -13,7 +13,7 @@ export default async function LoginPage() {
         <div className="glass-panel hidden rounded-3xl p-8 lg:block">
           <BotAvatar />
           <h1 className="mt-4 text-3xl font-semibold leading-tight">
-            SRL Operations Intelligence
+            OpsMind Operations Intelligence
             <br />
             Enterprise AI Command Center
           </h1>

@@ -1,6 +1,6 @@
 # Wati AI Integration Wiring Fix
 
-This document describes the fix for connecting the WhatsApp channel to the real SRL AI engine.
+This document describes the fix for connecting the WhatsApp channel to the real OpsMind AI engine.
 
 ## What Was Broken
 
@@ -99,7 +99,7 @@ async function handleChatMessage(session, messageText) {
     messageHistory: session.messages.slice(-10).map(...),
   };
 
-  // Call REAL AI adapter (connects to SRL engine)
+  // Call REAL AI adapter (connects to OpsMind engine)
   const aiResponse = await processWatiChatMessage(chatRequest, chatContext);
 
   // Send response via Wati
@@ -216,7 +216,7 @@ WhatsApp User
 
 ---
 
-## Reused SRL Services
+## Reused OpsMind Services
 
 | Service | Location | Purpose |
 |---------|----------|---------|
@@ -304,7 +304,7 @@ The integration now includes structured logging:
 
 - [x] Webhook now reaches real AI adapter
 - [x] Real AI responses are generated
-- [x] Existing SRL orchestration is reused
+- [x] Existing OpsMind orchestration is reused
 - [x] ERP tools execute properly
 - [x] Placeholder responses fully removed
 - [x] No duplicate chatbot logic exists

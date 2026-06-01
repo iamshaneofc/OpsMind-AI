@@ -13,16 +13,16 @@ const fs = require('fs');
     
     const res = await pool.request().query("SELECT TOP 1 * FROM dbo.Sales_Invoice_Header");
     const cols = Object.keys(res.recordset[0] || {});
-    fs.writeFileSync('z:/srl-operations-ai/invoice_cols.txt', JSON.stringify(cols, null, 2));
+    fs.writeFileSync('z:/opsmind-operations-ai/invoice_cols.txt', JSON.stringify(cols, null, 2));
     
     // Also check sales_order_header just in case
     const res2 = await pool.request().query("SELECT TOP 1 * FROM dbo.sales_order_header");
     const cols2 = Object.keys(res2.recordset[0] || {});
-    fs.writeFileSync('z:/srl-operations-ai/order_cols.txt', JSON.stringify(cols2, null, 2));
+    fs.writeFileSync('z:/opsmind-operations-ai/order_cols.txt', JSON.stringify(cols2, null, 2));
 
     process.exit(0);
   } catch (err) {
-    fs.writeFileSync('z:/srl-operations-ai/invoice_cols_error.txt', String(err));
+    fs.writeFileSync('z:/opsmind-operations-ai/invoice_cols_error.txt', String(err));
     process.exit(1);
   }
 })();

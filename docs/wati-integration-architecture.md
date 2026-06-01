@@ -1,6 +1,6 @@
 # Wati WhatsApp Integration Architecture
 
-This document outlines the architecture for adding WhatsApp as a communication channel via Wati, while reusing the existing SRL AI/chatbot engine.
+This document outlines the architecture for adding WhatsApp as a communication channel via Wati, while reusing the existing OpsMind AI/chatbot engine.
 
 ## Overview
 

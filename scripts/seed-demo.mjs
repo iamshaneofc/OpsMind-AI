@@ -100,30 +100,30 @@ async function upsertCatalog() {
   const mumbaiCentral = await ensureRow(
     "warehouses",
     "warehouse_name",
-    "SRL Central Warehouse",
-    { warehouse_name: "SRL Central Warehouse", location: "Mumbai" },
+    "OpsMind Central Warehouse",
+    { warehouse_name: "OpsMind Central Warehouse", location: "Mumbai" },
     "warehouse_id,warehouse_name",
   );
 
   const p1 = await ensureRow(
     "products",
     "sku",
-    "SRL-SOL-A",
-    { product_name: "SRL Solvent A", sku: "SRL-SOL-A", unit: "kg", price: 120 },
+    "OpsMind-SOL-A",
+    { product_name: "OpsMind Solvent A", sku: "OpsMind-SOL-A", unit: "kg", price: 120 },
     "product_id,product_name,sku",
   );
   const p2 = await ensureRow(
     "products",
     "sku",
-    "SRL-RES-B",
-    { product_name: "SRL Resin B", sku: "SRL-RES-B", unit: "kg", price: 95 },
+    "OpsMind-RES-B",
+    { product_name: "OpsMind Resin B", sku: "OpsMind-RES-B", unit: "kg", price: 95 },
     "product_id,product_name,sku",
   );
   const p3 = await ensureRow(
     "products",
     "sku",
-    "SRL-CAT-C",
-    { product_name: "SRL Catalyst C", sku: "SRL-CAT-C", unit: "kg", price: 140 },
+    "OpsMind-CAT-C",
+    { product_name: "OpsMind Catalyst C", sku: "OpsMind-CAT-C", unit: "kg", price: 140 },
     "product_id,product_name,sku",
   );
 
@@ -135,39 +135,39 @@ async function upsertCatalog() {
 }
 
 async function seed() {
-  const password = "Srl@12345";
+  const password = "OpsMind@12345";
   const adminUser = await ensureAuthUser({
-    email: "super.admin@srlchemicals.com",
+    email: "super.admin@opsmindchemicals.com",
     password,
-    fullName: "SRL Super Admin",
+    fullName: "OpsMind Super Admin",
     role: "super_admin",
   });
   const distributorUser = await ensureAuthUser({
-    email: "distributor@srlchemicals.com",
+    email: "distributor@opsmindchemicals.com",
     password,
-    fullName: "SRL Distributor",
+    fullName: "OpsMind Distributor",
     role: "distributor",
   });
   const pradeepUser = await ensureAuthUser({
-    email: "pradeep@srlchemicals.com",
+    email: "pradeep@opsmindchemicals.com",
     password,
     fullName: "Pradeep",
     role: "distributor",
   });
   const rohitUser = await ensureAuthUser({
-    email: "rohit@srlchemicals.com",
+    email: "rohit@opsmindchemicals.com",
     password,
     fullName: "Rohit",
     role: "distributor",
   });
   const warehouseUser = await ensureAuthUser({
-    email: "warehouse@srlchemicals.com",
+    email: "warehouse@opsmindchemicals.com",
     password,
-    fullName: "SRL Warehouse Incharge",
+    fullName: "OpsMind Warehouse Incharge",
     role: "warehouse",
   });
   const warehouseMumbaiUser = await ensureAuthUser({
-    email: "warehouse.mumbai@srlchemicals.com",
+    email: "warehouse.mumbai@opsmindchemicals.com",
     password,
     fullName: "Mumbai Warehouse Incharge",
     role: "warehouse",
@@ -193,7 +193,7 @@ async function seed() {
   const companyB = companies.find((c) => c.company_name === "BluePeak Chemicals Trade");
   const delhi = warehouses.find((w) => w.warehouse_name === "Delhi Central");
   const mumbai = warehouses.find((w) => w.warehouse_name === "Mumbai West");
-  const mumbaiCentral = warehouses.find((w) => w.warehouse_name === "SRL Central Warehouse");
+  const mumbaiCentral = warehouses.find((w) => w.warehouse_name === "OpsMind Central Warehouse");
   if (!companyA || !companyB || !delhi || !mumbai || !mumbaiCentral) {
     throw new Error("Required companies/warehouses missing after upsert.");
   }
@@ -204,7 +204,7 @@ async function seed() {
     adminUser.email,
     {
       email: adminUser.email,
-      name: "SRL Super Admin",
+      name: "OpsMind Super Admin",
       password_hash: "managed-by-supabase-auth",
       role_id: 1,
       is_active: true,
@@ -217,7 +217,7 @@ async function seed() {
     distributorUser.email,
     {
       email: distributorUser.email,
-      name: "SRL Distributor",
+      name: "OpsMind Distributor",
       password_hash: "managed-by-supabase-auth",
       role_id: 2,
       company_id: companyA.company_id,
@@ -259,7 +259,7 @@ async function seed() {
     warehouseUser.email,
     {
       email: warehouseUser.email,
-      name: "SRL Warehouse Incharge",
+      name: "OpsMind Warehouse Incharge",
       password_hash: "managed-by-supabase-auth",
       role_id: 3,
       warehouse_id: delhi.warehouse_id,
@@ -306,7 +306,7 @@ async function seed() {
 
   const orderSeed = [
     {
-      order_number: "SRL-1024",
+      order_number: "OpsMind-1024",
       company_id: companyA.company_id,
       created_by: distributorAppUserId,
       order_value: 14400,
@@ -317,7 +317,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-2032",
+      order_number: "OpsMind-2032",
       company_id: companyB.company_id,
       created_by: adminAppUserId,
       order_value: 8075,
@@ -328,7 +328,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() - 1 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-2034",
+      order_number: "OpsMind-2034",
       company_id: companyA.company_id,
       created_by: warehouseAppUserId,
       order_value: 8400,
@@ -339,7 +339,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-3001",
+      order_number: "OpsMind-3001",
       company_id: companyC.company_id,
       created_by: pradeepAppUserId,
       order_value: 11400,
@@ -350,7 +350,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-3002",
+      order_number: "OpsMind-3002",
       company_id: companyC.company_id,
       created_by: pradeepAppUserId,
       order_value: 9500,
@@ -361,7 +361,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-3003",
+      order_number: "OpsMind-3003",
       company_id: companyC.company_id,
       created_by: pradeepAppUserId,
       order_value: 12600,
@@ -372,7 +372,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() + 1 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-4001",
+      order_number: "OpsMind-4001",
       company_id: companyD.company_id,
       created_by: rohitAppUserId,
       order_value: 13300,
@@ -383,7 +383,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-4002",
+      order_number: "OpsMind-4002",
       company_id: companyD.company_id,
       created_by: rohitAppUserId,
       order_value: 10200,
@@ -394,7 +394,7 @@ async function seed() {
       expected_delivery_date: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10),
     },
     {
-      order_number: "SRL-4003",
+      order_number: "OpsMind-4003",
       company_id: companyD.company_id,
       created_by: rohitAppUserId,
       order_value: 16800,
@@ -419,56 +419,56 @@ async function seed() {
   await admin.from("order_items").delete().in("order_id", allOrderIds);
   const { error: itemsErr } = await admin.from("order_items").insert([
     {
-      order_id: orderByNum["SRL-1024"],
-      product_id: skuById["SRL-SOL-A"],
+      order_id: orderByNum["OpsMind-1024"],
+      product_id: skuById["OpsMind-SOL-A"],
       quantity: 120,
       unit_price: 120,
     },
     {
-      order_id: orderByNum["SRL-2032"],
-      product_id: skuById["SRL-RES-B"],
+      order_id: orderByNum["OpsMind-2032"],
+      product_id: skuById["OpsMind-RES-B"],
       quantity: 85,
       unit_price: 95,
     },
     {
-      order_id: orderByNum["SRL-2034"],
-      product_id: skuById["SRL-CAT-C"],
+      order_id: orderByNum["OpsMind-2034"],
+      product_id: skuById["OpsMind-CAT-C"],
       quantity: 60,
       unit_price: 140,
     },
     {
-      order_id: orderByNum["SRL-3001"],
-      product_id: skuById["SRL-SOL-A"],
+      order_id: orderByNum["OpsMind-3001"],
+      product_id: skuById["OpsMind-SOL-A"],
       quantity: 95,
       unit_price: 120,
     },
     {
-      order_id: orderByNum["SRL-3002"],
-      product_id: skuById["SRL-RES-B"],
+      order_id: orderByNum["OpsMind-3002"],
+      product_id: skuById["OpsMind-RES-B"],
       quantity: 100,
       unit_price: 95,
     },
     {
-      order_id: orderByNum["SRL-3003"],
-      product_id: skuById["SRL-CAT-C"],
+      order_id: orderByNum["OpsMind-3003"],
+      product_id: skuById["OpsMind-CAT-C"],
       quantity: 90,
       unit_price: 140,
     },
     {
-      order_id: orderByNum["SRL-4001"],
-      product_id: skuById["SRL-SOL-A"],
+      order_id: orderByNum["OpsMind-4001"],
+      product_id: skuById["OpsMind-SOL-A"],
       quantity: 110,
       unit_price: 120,
     },
     {
-      order_id: orderByNum["SRL-4002"],
-      product_id: skuById["SRL-RES-B"],
+      order_id: orderByNum["OpsMind-4002"],
+      product_id: skuById["OpsMind-RES-B"],
       quantity: 107,
       unit_price: 95,
     },
     {
-      order_id: orderByNum["SRL-4003"],
-      product_id: skuById["SRL-CAT-C"],
+      order_id: orderByNum["OpsMind-4003"],
+      product_id: skuById["OpsMind-CAT-C"],
       quantity: 120,
       unit_price: 140,
     },
@@ -482,32 +482,32 @@ async function seed() {
   const { error: inventoryErr } = await admin.from("inventory").insert([
     {
       warehouse_id: delhi.warehouse_id,
-      product_id: skuById["SRL-SOL-A"],
+      product_id: skuById["OpsMind-SOL-A"],
       available_quantity: 140,
     },
     {
       warehouse_id: delhi.warehouse_id,
-      product_id: skuById["SRL-CAT-C"],
+      product_id: skuById["OpsMind-CAT-C"],
       available_quantity: 24,
     },
     {
       warehouse_id: mumbai.warehouse_id,
-      product_id: skuById["SRL-RES-B"],
+      product_id: skuById["OpsMind-RES-B"],
       available_quantity: 18,
     },
     {
       warehouse_id: mumbaiCentral.warehouse_id,
-      product_id: skuById["SRL-SOL-A"],
+      product_id: skuById["OpsMind-SOL-A"],
       available_quantity: 200,
     },
     {
       warehouse_id: mumbaiCentral.warehouse_id,
-      product_id: skuById["SRL-RES-B"],
+      product_id: skuById["OpsMind-RES-B"],
       available_quantity: 150,
     },
     {
       warehouse_id: mumbaiCentral.warehouse_id,
-      product_id: skuById["SRL-CAT-C"],
+      product_id: skuById["OpsMind-CAT-C"],
       available_quantity: 80,
     },
   ]);
@@ -517,14 +517,14 @@ async function seed() {
 
   const { error: historyErr } = await admin.from("order_status_history").insert([
     {
-      order_id: orderByNum["SRL-1024"],
+      order_id: orderByNum["OpsMind-1024"],
       previous_status: "PENDING",
       new_status: "IN_PREPARATION",
       updated_by: warehouseAppUserId,
       updated_at: new Date().toISOString(),
     },
     {
-      order_id: orderByNum["SRL-2032"],
+      order_id: orderByNum["OpsMind-2032"],
       previous_status: "IN_PREPARATION",
       new_status: "AWAITING_FACTORY",
       updated_by: adminAppUserId,
@@ -536,29 +536,29 @@ async function seed() {
   await admin
     .from("alerts")
     .delete()
-    .in("message", ["Low stock: SRL Catalyst C", "Delayed order: SRL-2032", "Dispatch ready: SRL-2034"]);
+    .in("message", ["Low stock: OpsMind Catalyst C", "Delayed order: OpsMind-2032", "Dispatch ready: OpsMind-2034"]);
 
   const { error: alertsErr } = await admin.from("alerts").insert([
     {
       alert_type: "warning",
-      message: "Low stock: SRL Catalyst C",
+      message: "Low stock: OpsMind Catalyst C",
       user_id: warehouseAppUserId,
       is_read: false,
-      order_id: orderByNum["SRL-2034"],
+      order_id: orderByNum["OpsMind-2034"],
     },
     {
       alert_type: "critical",
-      message: "Delayed order: SRL-2032",
+      message: "Delayed order: OpsMind-2032",
       user_id: adminAppUserId,
       is_read: false,
-      order_id: orderByNum["SRL-2032"],
+      order_id: orderByNum["OpsMind-2032"],
     },
     {
       alert_type: "info",
-      message: "Dispatch ready: SRL-2034",
+      message: "Dispatch ready: OpsMind-2034",
       user_id: warehouseAppUserId,
       is_read: false,
-      order_id: orderByNum["SRL-2034"],
+      order_id: orderByNum["OpsMind-2034"],
     },
   ]);
   if (alertsErr) throw alertsErr;
@@ -609,9 +609,9 @@ async function seed() {
       sender: "assistant",
       user_id: distributorAppUserId,
       role: "distributor",
-      message: "Where is order SRL-1024?",
+      message: "Where is order OpsMind-1024?",
       response:
-        "Order SRL-1024\nStatus: IN_PREPARATION\nWarehouse: Delhi Central\nExpected Delivery: in 7 days",
+        "Order OpsMind-1024\nStatus: IN_PREPARATION\nWarehouse: Delhi Central\nExpected Delivery: in 7 days",
     },
     {
       session_id: sessionMap.get(warehouseAppUserId),
@@ -619,34 +619,34 @@ async function seed() {
       user_id: warehouseAppUserId,
       role: "warehouse",
       message: "What orders are ready for dispatch today?",
-      response: "1 order ready for dispatch: SRL-2034 (Delhi Central)",
+      response: "1 order ready for dispatch: OpsMind-2034 (Delhi Central)",
     },
   ]);
   if (chatErr) throw chatErr;
 
   const authChecks = await Promise.all([
     anon.auth.signInWithPassword({
-      email: "super.admin@srlchemicals.com",
+      email: "super.admin@opsmindchemicals.com",
       password,
     }),
     anon.auth.signInWithPassword({
-      email: "distributor@srlchemicals.com",
+      email: "distributor@opsmindchemicals.com",
       password,
     }),
     anon.auth.signInWithPassword({
-      email: "pradeep@srlchemicals.com",
+      email: "pradeep@opsmindchemicals.com",
       password,
     }),
     anon.auth.signInWithPassword({
-      email: "rohit@srlchemicals.com",
+      email: "rohit@opsmindchemicals.com",
       password,
     }),
     anon.auth.signInWithPassword({
-      email: "warehouse@srlchemicals.com",
+      email: "warehouse@opsmindchemicals.com",
       password,
     }),
     anon.auth.signInWithPassword({
-      email: "warehouse.mumbai@srlchemicals.com",
+      email: "warehouse.mumbai@opsmindchemicals.com",
       password,
     }),
   ]);
@@ -656,12 +656,12 @@ async function seed() {
 
   console.log("Seed complete.");
   console.log("Demo users:");
-  console.log("- super.admin@srlchemicals.com / Srl@12345 (Super Admin)");
-  console.log("- distributor@srlchemicals.com / Srl@12345 (Distributor - North Axis)");
-  console.log("- pradeep@srlchemicals.com / Srl@12345 (Distributor - Pradeep Chemicals)");
-  console.log("- rohit@srlchemicals.com / Srl@12345 (Distributor - Rohit Trading)");
-  console.log("- warehouse@srlchemicals.com / Srl@12345 (Warehouse - Delhi Central)");
-  console.log("- warehouse.mumbai@srlchemicals.com / Srl@12345 (Warehouse - Mumbai Central)");
+  console.log("- super.admin@opsmindchemicals.com / OpsMind@12345 (Super Admin)");
+  console.log("- distributor@opsmindchemicals.com / OpsMind@12345 (Distributor - North Axis)");
+  console.log("- pradeep@opsmindchemicals.com / OpsMind@12345 (Distributor - Pradeep Chemicals)");
+  console.log("- rohit@opsmindchemicals.com / OpsMind@12345 (Distributor - Rohit Trading)");
+  console.log("- warehouse@opsmindchemicals.com / OpsMind@12345 (Warehouse - Delhi Central)");
+  console.log("- warehouse.mumbai@opsmindchemicals.com / OpsMind@12345 (Warehouse - Mumbai Central)");
 }
 
 seed().catch((error) => {

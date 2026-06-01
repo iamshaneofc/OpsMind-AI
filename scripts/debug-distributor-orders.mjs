@@ -37,7 +37,7 @@ async function main() {
   const { data: users, error } = await supabase
     .from("users")
     .select("email,role_id,company_id,warehouse_id")
-    .or("email.ilike.%viraj%,email.ilike.%krissh%,email.ilike.%srlchemicals.com%")
+    .or("email.ilike.%viraj%,email.ilike.%krissh%,email.ilike.%opsmindchemicals.com%")
     .limit(100);
 
   if (error) {

@@ -157,7 +157,7 @@ export async function startOnboarding(
   // Ask for email
   return {
     success: true,
-    message: `Welcome to SRL Operations AI! 👋\n\nTo link your WhatsApp, please enter the email address you used to register on our web platform.`,
+    message: `Welcome to OpsMind Operations AI! 👋\n\nTo link your WhatsApp, please enter the email address you used to register on our web platform.`,
     nextState: 'WAITING_FOR_EMAIL',
   };
 }
@@ -513,7 +513,7 @@ if (typeof setInterval !== 'undefined') {
  * Get the initial onboarding prompt (legacy function)
  */
 export function getOnboardingStartMessage(): string {
-  return `Welcome to SRL Operations AI! 👋\n\nTo link your WhatsApp, please enter the email address you used to register on our web platform.`;
+  return `Welcome to OpsMind Operations AI! 👋\n\nTo link your WhatsApp, please enter the email address you used to register on our web platform.`;
 }
 
 /**

@@ -11,13 +11,13 @@ const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE, {
 });
 
 async function testOrderDetails() {
-  console.log("Testing order details for SRL-2026-001...\n");
+  console.log("Testing order details for OpsMind-2026-001...\n");
 
   // Get order
   const { data: order, error: orderError } = await admin
     .from("orders")
     .select("order_id, order_number, company_id, warehouse_id, order_status, expected_delivery_date")
-    .eq("order_number", "SRL-2026-001")
+    .eq("order_number", "OpsMind-2026-001")
     .single();
 
   if (orderError || !order) {

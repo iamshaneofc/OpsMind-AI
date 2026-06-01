@@ -4,7 +4,7 @@
  * Auth (pick one):
  *   - CHAT_API_BEARER_TOKEN — Supabase user JWT (e.g. from browser after login)
  *   - CHAT_TEST_PASSWORD — signs in with anon key (optional CHAT_TEST_EMAIL; defaults to
- *     distributor@srlchemicals.com, same seed as scripts/test-dataflow.mjs)
+ *     distributor@opsmindchemicals.com, same seed as scripts/test-dataflow.mjs)
  *
  * Other:
  *   - APP_BASE_URL — default http://localhost:3000 (server must be running)
@@ -55,7 +55,7 @@ const OUT_MD = path.join(ROOT, "test-report.md");
 
 const PREVIEW_LEN = 900;
 
-const DEFAULT_CHAT_TEST_EMAIL = "distributor@srlchemicals.com";
+const DEFAULT_CHAT_TEST_EMAIL = "distributor@opsmindchemicals.com";
 
 async function getBearerToken() {
   const direct = process.env.CHAT_API_BEARER_TOKEN?.trim();

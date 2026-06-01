@@ -1,4 +1,4 @@
-# SRL Operations AI - Dashboard & Inventory Alerts Logic
+# OpsMind Operations AI - Dashboard & Inventory Alerts Logic
 
 This document explains **everything the UI displays** for the operations dashboard, and the **backend logic / SQL** that powers those values.
 

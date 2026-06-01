@@ -101,7 +101,7 @@ function createTestProfiles() {
   return {
     super_admin: {
       user_id: 1,
-      email: "test.superadmin@srl.com",
+      email: "test.superadmin@opsmind.com",
       full_name: "Test Super Admin",
       role_id: 1,
       role: "super_admin",
@@ -110,7 +110,7 @@ function createTestProfiles() {
     },
     distributor: {
       user_id: 2,
-      email: "test.distributor@srl.com",
+      email: "test.distributor@opsmind.com",
       full_name: "Test Distributor",
       role_id: 2,
       role: "distributor",
@@ -119,7 +119,7 @@ function createTestProfiles() {
     },
     warehouse: {
       user_id: 3,
-      email: "test.warehouse@srl.com",
+      email: "test.warehouse@opsmind.com",
       full_name: "Test Warehouse",
       role_id: 3,
       role: "warehouse",
@@ -128,7 +128,7 @@ function createTestProfiles() {
     },
     company_admin: {
       user_id: 4,
-      email: "test.admin@srl.com",
+      email: "test.admin@opsmind.com",
       full_name: "Test Company Admin",
       role_id: 2,
       role: "distributor",

@@ -10,7 +10,7 @@ interface TopNavProps {
 }
 
 export function TopNav({ profile }: TopNavProps) {
-  const displayName = profile.full_name?.trim() || profile.email.split("@")[0] || "SRL User";
+  const displayName = profile.full_name?.trim() || profile.email.split("@")[0] || "OpsMind User";
 
   return (
     <motion.header

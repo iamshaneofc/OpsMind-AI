@@ -1,7 +1,7 @@
 /**
  * Wati Chat Adapter
  *
- * Bridges WhatsApp messages to the existing SRL AI chatbot engine.
+ * Bridges WhatsApp messages to the existing OpsMind AI chatbot engine.
  * Reuses the SAME AI orchestration, prompts, and ERP tools.
  *
  * Key principle: DO NOT duplicate chatbot logic - adapt WhatsApp input
@@ -29,7 +29,7 @@ import type { WatiUserProfile } from './types';
 
 // The WhatsApp channel uses the EXACT same system prompt as the web chat
 // This ensures consistent AI behavior across channels
-const WHATSAPP_SYSTEM_PROMPT = `You are SRL Operations AI, a professional operations assistant for SRL Chemicals.
+const WHATSAPP_SYSTEM_PROMPT = `You are OpsMind Operations AI, a professional operations assistant for OpsMind Chemicals.
 
 TYPO HANDLING (PRODUCT/ORDER DOMAIN ONLY):
 1. Check for likely typos only when the user appears to be asking about a product, order, invoice, inventory, dispatch, or warehouse.
@@ -110,7 +110,7 @@ export interface WatiChatContext {
 // ============================================================================
 
 /**
- * Process a WhatsApp message through the existing SRL AI engine
+ * Process a WhatsApp message through the existing OpsMind AI engine
  *
  * This is the bridge that converts WhatsApp input to the format expected
  * by the existing chatbot logic. It:
@@ -236,7 +236,7 @@ export async function processWatiChatMessage(
 function buildUserProfile(context: WatiChatContext): UserProfile {
   return {
     user_id: context.userId,
-    email: `${context.phoneNumber}@whatsapp.srl`,
+    email: `${context.phoneNumber}@whatsapp.opsmind`,
     full_name: 'WhatsApp User',
     role: context.role,
     role_id: context.roleId,

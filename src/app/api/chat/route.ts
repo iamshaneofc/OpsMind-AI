@@ -25,7 +25,7 @@ const TEMP_LOCAL_WAREHOUSE_SUB_STATUS = "Local warehouse";
 /** TEMP: Sub-status column for central-warehouse shortcut only. */
 const TEMP_CENTRAL_WAREHOUSE_SUB_STATUS = "Central warehouse";
 
-const SYSTEM_PROMPT = `You are SRL Operations AI, a professional operations assistant for SRL Chemicals.
+const SYSTEM_PROMPT = `You are OpsMind Operations AI, a professional operations assistant for OpsMind Chemicals.
 
 TYPO HANDLING (PRODUCT/ORDER DOMAIN ONLY):
 1. Check for likely typos only when the user appears to be asking about a product, order, invoice, inventory, dispatch, or warehouse.
@@ -624,7 +624,7 @@ export async function POST(request: Request) {
 
     if (looksLikeOffTopicQuery) {
       const scopedReply =
-        "I can only help with SRL operations workflows: orders, invoices, inventory, dispatch, products, and warehouses. Please ask an SRL-related query like `track order 6.105.260216.1` or `show available stock for Evans Blue`.";
+        "I can only help with OpsMind operations workflows: orders, invoices, inventory, dispatch, products, and warehouses. Please ask an OpsMind-related query like `track order 6.105.260216.1` or `show available stock for Evans Blue`.";
       return sendAssistantResponse(scopedReply);
     }
 

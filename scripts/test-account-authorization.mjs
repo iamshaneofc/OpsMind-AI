@@ -134,27 +134,27 @@ async function testAuthorization() {
   // Get all test accounts
   const testAccounts = [
     {
-      email: "krisshna.enterprise@srlchemicals.com",
+      email: "krisshna.enterprise@opsmindchemicals.com",
       role: "distributor",
       description: "Krisshna Enterprise Distributor",
     },
     {
-      email: "viraj.lifescience@srlchemicals.com",
+      email: "viraj.lifescience@opsmindchemicals.com",
       role: "distributor",
       description: "Viraj Life Science Distributor",
     },
     {
-      email: "warehouse.central@srlchemicals.com",
+      email: "warehouse.central@opsmindchemicals.com",
       role: "warehouse",
-      description: "SRL Central Warehouse",
+      description: "OpsMind Central Warehouse",
     },
     {
-      email: "warehouse.delhi@srlchemicals.com",
+      email: "warehouse.delhi@opsmindchemicals.com",
       role: "warehouse",
       description: "Delhi Central Warehouse",
     },
     {
-      email: "super.admin@srlchemicals.com",
+      email: "super.admin@opsmindchemicals.com",
       role: "super_admin",
       description: "Super Admin",
     },

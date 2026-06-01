@@ -1,10 +1,10 @@
 module.exports = {
   "apps": [
     {
-      "name": "srl-bot",
+      "name": "opsmind-bot",
       "script": "npm",
       "args": "start",
-      "cwd": "/root/srlbotai",
+      "cwd": "/root/opsmindbotai",
       "env": {
         "NODE_ENV": "production",
         "USE_SQL_SERVER_DATA": "true",

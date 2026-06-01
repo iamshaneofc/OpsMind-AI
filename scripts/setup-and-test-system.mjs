@@ -70,7 +70,7 @@ WHERE id IS NULL;
     console.log("=".repeat(80));
     console.log("\nAfter applying the migration, run this script again.");
     console.log("\nOr apply the migration file:");
-    console.log("  srl-operations-ai/supabase/migrations/202603080001_add_uuid_to_orders.sql");
+    console.log("  opsmind-operations-ai/supabase/migrations/202603080001_add_uuid_to_orders.sql");
     process.exit(1);
   }
 

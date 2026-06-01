@@ -47,19 +47,19 @@ async function setupTestUsers() {
   // Test users to create/verify
   const testUsers = [
     {
-      email: "test.superadmin@srlchemicals.com",
+      email: "test.superadmin@opsmindchemicals.com",
       role: "super_admin",
       company_id: null,
       warehouse_id: null,
     },
     {
-      email: "test.distributor@srlchemicals.com",
+      email: "test.distributor@opsmindchemicals.com",
       role: "distributor",
       company_id: testCompanyId,
       warehouse_id: null,
     },
     {
-      email: "test.warehouse@srlchemicals.com",
+      email: "test.warehouse@opsmindchemicals.com",
       role: "warehouse",
       company_id: null,
       warehouse_id: testWarehouseId,

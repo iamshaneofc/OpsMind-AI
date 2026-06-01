@@ -321,12 +321,12 @@ export async function sendOnboardingOtp(
     const resend = new Resend(resendApiKey);
 
     const { error } = await resend.emails.send({
-      from: process.env.OTP_FROM_EMAIL || 'noreply@srloperations.ai',
+      from: process.env.OTP_FROM_EMAIL || 'noreply@opsmindoperations.ai',
       to: [email],
-      subject: 'Your SRL Operations WhatsApp Verification Code',
+      subject: 'Your OpsMind Operations WhatsApp Verification Code',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">SRL Operations AI - WhatsApp Verification</h2>
+          <h2 style="color: #333;">OpsMind Operations AI - WhatsApp Verification</h2>
           <p>Your verification code is:</p>
           <div style="background: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 20px 0;">
             ${testCode}

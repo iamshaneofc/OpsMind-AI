@@ -39,7 +39,7 @@ function main() {
   const envPath = path.join(root, ".env");
   const hasNodeModules = fs.existsSync(path.join(root, "node_modules"));
 
-  console.log("Local dev check (srl-operations-ai)\n");
+  console.log("Local dev check (opsmind-operations-ai)\n");
 
   if (!hasNodeModules) {
     console.log("  [ ] node_modules missing — run: npm install\n");

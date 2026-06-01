@@ -1,4 +1,4 @@
-# SRL Operations AI (Concise Overview)
+# OpsMind Operations AI (Concise Overview)
 
 ## 1) Login / Credentials
 Users authenticate with **Supabase email + password**:

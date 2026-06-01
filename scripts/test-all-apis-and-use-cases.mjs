@@ -29,21 +29,21 @@ const testProfiles = {
     role: "super_admin",
     company_id: null,
     warehouse_id: null,
-    email: "superadmin@srl.com",
+    email: "superadmin@opsmind.com",
   },
   distributor: {
     user_id: 2,
     role: "distributor",
     company_id: 1, // Assuming company_id 1 exists
     warehouse_id: null,
-    email: "distributor@srl.com",
+    email: "distributor@opsmind.com",
   },
   warehouse: {
     user_id: 3,
     role: "warehouse",
     company_id: null,
     warehouse_id: 2, // Assuming warehouse_id 2 exists
-    email: "warehouse@srl.com",
+    email: "warehouse@opsmind.com",
   },
 };
 

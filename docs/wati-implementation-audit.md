@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This audit evaluates the Wati WhatsApp integration implementation against the project goals of reusing existing SRL AI/chatbot orchestration, avoiding duplicate AI logic, and enabling secure WhatsApp access.
+This audit evaluates the Wati WhatsApp integration implementation against the project goals of reusing existing OpsMind AI/chatbot orchestration, avoiding duplicate AI logic, and enabling secure WhatsApp access.
 
 | Aspect | Status | Completion |
 |--------|--------|------------|
@@ -51,7 +51,7 @@ src/app/api/wati/
 
 **Strengths:**
 - Clean separation of concerns
-- Reuses existing SRL services (auth, ERP tools, OpenAI client)
+- Reuses existing OpsMind services (auth, ERP tools, OpenAI client)
 - Types well-defined
 - Configuration centralized in constants.ts
 - Documentation complete

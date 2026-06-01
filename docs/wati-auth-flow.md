@@ -4,7 +4,7 @@ This document describes the WhatsApp authentication flow for the Wati integratio
 
 ## Overview
 
-The WhatsApp authentication layer maps WhatsApp phone numbers to SRL users, enabling secure access to ERP data through WhatsApp while reusing existing authentication and authorization logic.
+The WhatsApp authentication layer maps WhatsApp phone numbers to OpsMind users, enabling secure access to ERP data through WhatsApp while reusing existing authentication and authorization logic.
 
 ## Auth Flow Diagram
 
