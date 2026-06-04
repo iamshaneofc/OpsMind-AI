@@ -17,11 +17,11 @@ export function Sidebar({ role }: SidebarProps) {
 
   return (
     <aside className="glass-panel fixed left-4 top-4 z-20 hidden h-[calc(100vh-2rem)] w-[260px] rounded-2xl p-4 lg:block">
-      <div className="mb-8 flex items-center gap-3 rounded-lg border border-teal-500/20 bg-teal-500/10 p-3">
-        <Sparkles className="text-teal-500" size={20} />
+      <div className="mb-8 flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/10 p-3 shadow-[0_0_15px_rgba(79,70,229,0.15)]">
+        <Sparkles className="text-primary" size={20} />
         <div>
-          <p className="text-sm font-semibold tracking-tight">OpsMind AI</p>
-          <p className="text-[11px] tracking-wide text-muted-foreground">Intelligence core</p>
+          <p className="text-sm font-semibold tracking-tight text-white">OpsMind AI</p>
+          <p className="text-[11px] tracking-wide text-primary/80">Intelligence core</p>
         </div>
       </div>
       <nav className="space-y-1">
@@ -35,8 +35,8 @@ export function Sidebar({ role }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors font-medium",
                 active
-                  ? "bg-teal-500/15 text-teal-600 dark:text-teal-400"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "bg-primary/15 text-primary shadow-[inset_0_0_10px_rgba(79,70,229,0.1)]"
+                  : "text-muted-foreground hover:bg-white/5 hover:text-white",
               )}
             >
               <Icon size={16} />

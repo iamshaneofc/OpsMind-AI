@@ -3,20 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: 225 59% 6%;
-  --foreground: 210 40% 98%;
-  --card: 224 50% 10%;
-  --card-foreground: 210 40% 98%;
-  --primary: 197 97% 58%;
-  --primary-foreground: 224 71% 4%;
-  --muted: 223 35% 14%;
-  --muted-foreground: 215 20% 72%;
-  --accent: 214 100% 18%;
-  --accent-foreground: 210 40% 98%;
-  --border: 217 35% 22%;
-  --input: 217 35% 22%;
-  --ring: 197 97% 58%;
-  --radius: 0.85rem;
+  --background: 0 0% 4%; /* #0A0A0A */
+  --foreground: 0 0% 98%; /* White text */
+  --card: 0 0% 7%; /* Darker card */
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 98%;
+  
+  --primary: 226 100% 64%; /* Deep Indigo / Electric Blue #4F46E5 to #3B82F6 */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 270 60% 50%; /* Purple accent */
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
+  
+  --accent: 0 0% 12%;
+  --accent-foreground: 0 0% 98%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 0 0% 14%;
+  --input: 0 0% 14%;
+  --ring: 226 100% 64%;
+  
+  --radius: 0.75rem;
+
+  /* States */
+  --success: 142 71% 45%;
+  --warning: 38 92% 50%;
+  --alert: 0 84% 60%;
 }
 
 * {
@@ -24,11 +42,11 @@
 }
 
 body {
-  @apply bg-background text-foreground antialiased;
+  @apply bg-background text-foreground antialiased selection:bg-primary/30;
+  /* Subtle dark charcoal background with very faint blue glow */
   background-image:
-    radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.12), transparent 30%),
-    radial-gradient(circle at 90% 0%, rgba(59, 130, 246, 0.15), transparent 26%),
-    linear-gradient(180deg, #070c1d, #050816 55%, #040611);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.1), transparent),
+    radial-gradient(ellipse 80% 50% at 50% 120%, rgba(79, 70, 229, 0.08), transparent);
 }
 
 @layer utilities {
@@ -37,6 +55,11 @@ body {
   }
 
   .glass-panel {
-    @apply border border-white/10 bg-slate-900/45 backdrop-blur-xl;
+    @apply border border-white/5 bg-white/[0.02] backdrop-blur-2xl shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)];
+  }
+
+  .glass-card {
+    @apply rounded-xl border border-white/[0.05] bg-white/[0.02] p-6 backdrop-blur-xl transition-all duration-300 hover:border-white/[0.1] hover:bg-white/[0.04];
   }
 }
+

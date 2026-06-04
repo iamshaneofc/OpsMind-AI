@@ -826,14 +826,14 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
                   onClick={(e) => handleSubmit(e, item)}
                   className="rounded-full h-8 px-4 text-xs font-medium bg-muted/30 border-border/60 hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-all"
                 >
-                  <Sparkles size={12} className="mr-1.5 text-teal-500/70" />
+                  <Sparkles size={12} className="mr-1.5 text-primary/70" />
                   {item}
                 </Button>
               ))}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="relative flex items-end gap-2 rounded-2xl border border-border/60 bg-muted/20 p-2 shadow-sm transition-colors focus-within:border-teal-500/40 focus-within:bg-muted/30 focus-within:ring-1 focus-within:ring-teal-500/20">
+          <form onSubmit={handleSubmit} className="relative flex items-end gap-2 rounded-2xl border border-border/60 bg-muted/20 p-2 shadow-sm transition-colors focus-within:border-primary/40 focus-within:bg-muted/30 focus-within:ring-1 focus-within:ring-primary/20">
             {hydratedMessages.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -862,7 +862,7 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
                 type="button"
                 variant="ghost"
                 onClick={handleRefreshChat}
-                className="mb-0.5 h-[36px] w-[36px] shrink-0 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 p-0 flex items-center justify-center rounded-xl transition-colors"
+                className="mb-0.5 h-[36px] w-[36px] shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10 p-0 flex items-center justify-center rounded-xl transition-colors"
                 title="Refresh chat"
               >
                 <RefreshCw size={16} />
@@ -916,7 +916,7 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
                         onMouseEnter={() => setActiveSuggestionIndex(idx)}
                         onClick={(e) => handleSubmit(e as any, s)}
                       >
-                        <Sparkles size={14} className="mr-2 text-teal-400" />
+                        <Sparkles size={14} className="mr-2 text-primary" />
                         {s}
                       </Button>
                     ))}
@@ -939,7 +939,7 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
                 disabled={!prompt.trim()}
                 className={`h-[44px] w-[44px] shrink-0 rounded-xl transition-all p-0 flex items-center justify-center ${
                   prompt.trim()
-                    ? "bg-teal-500 text-teal-50 hover:bg-teal-600 shadow-md shadow-teal-500/20"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20"
                     : "bg-muted text-muted-foreground hover:bg-muted"
                 }`}
               >

@@ -96,9 +96,9 @@ export function DashboardRealtime({
 
         <OrdersPipelineChart data={metrics.ordersPipeline} />
 
-        <Card className="glass-panel h-[400px] flex flex-col p-6">
+        <Card className="glass-card h-[400px] flex flex-col p-6">
           <CardTitle className="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-cyan-500/20 text-cyan-400">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/20 text-primary">
               <ArrowRight size={14} />
             </span>
             Recommended Actions
@@ -116,7 +116,7 @@ export function DashboardRealtime({
                 </div>
                 <a
                   href="/dashboard/orders?view=in-progress"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-400 transition-colors group-hover:bg-cyan-500/20 group-hover:text-cyan-300"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20 group-hover:text-primary-foreground"
                 >
                   <ArrowRight size={16} />
                 </a>
@@ -131,7 +131,7 @@ export function DashboardRealtime({
                 </div>
                 <a
                   href="/dashboard/orders?view=awaiting-factory"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400 transition-colors group-hover:bg-indigo-500/20 group-hover:text-indigo-300"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20 group-hover:text-primary-foreground"
                 >
                   <ArrowRight size={16} />
                 </a>
@@ -148,7 +148,7 @@ export function DashboardRealtime({
                 </div>
                 <a
                   href="/dashboard/chatbot"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-fuchsia-500/10 text-fuchsia-400 transition-colors group-hover:bg-fuchsia-500/20 group-hover:text-fuchsia-300"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20 group-hover:text-primary-foreground"
                 >
                   <ArrowRight size={16} />
                 </a>
