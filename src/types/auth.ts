@@ -1,4 +1,4 @@
-export type AppRole = "super_admin" | "distributor" | "warehouse";
+export type AppRole = "admin" | "manager" | "analyst";
 
 export interface UserProfile {
   user_id: number;

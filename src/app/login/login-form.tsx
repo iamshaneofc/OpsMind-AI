@@ -32,20 +32,20 @@ export function LoginForm() {
     }
 
     clearMessages();
-    router.push("/dashboard");
-    router.refresh();
+    window.location.assign("/dashboard");
   }
 
   return (
     <Card className="w-full max-w-md p-6">
       <CardTitle className="mb-1 text-2xl tracking-tight">OpsMind AI</CardTitle>
-      <CardDescription className="mb-6">Enterprise operations intelligence for OpsMind Chemicals</CardDescription>
+      <CardDescription className="mb-6">Enterprise operations intelligence for OpsMind AI</CardDescription>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="mb-1 block text-xs text-muted-foreground">Email</label>
           <Input
+            id="email"
             type="email"
-            placeholder="name@opsmindchemicals.com"
+            placeholder="name@opsmind.ai"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required

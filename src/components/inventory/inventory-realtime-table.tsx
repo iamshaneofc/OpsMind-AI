@@ -5,10 +5,10 @@ import { InventoryTable } from "@/components/inventory/inventory-table";
 import type { AppRole } from "@/types/auth";
 
 interface InventoryRow {
-  id: number;
-  warehouse_id: number;
+  id: string | number;
+  warehouse_id: string | number | null;
   warehouse_name?: string | null;
-  product_id: number;
+  product_id: string | number;
   available_qty: number;
   reorder_level: number;
   updated_at: string;

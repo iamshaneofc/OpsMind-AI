@@ -217,7 +217,7 @@ export function StructuredDataRenderer({ data, type = "auto" }: StructuredDataRe
                   <TableHeader>
                     <TableRow className="border-border/40 hover:bg-transparent text-xs">
                       <TableHead className="text-muted-foreground">Order Ref</TableHead>
-                      <TableHead className="text-muted-foreground">Distributor</TableHead>
+                      <TableHead className="text-muted-foreground">Customer</TableHead>
                       <TableHead className="text-muted-foreground">Status</TableHead>
                       <TableHead className="text-muted-foreground">Warehouse</TableHead>
                       <TableHead className="text-muted-foreground">Delivered / ETA</TableHead>
@@ -478,7 +478,7 @@ export function StructuredDataRenderer({ data, type = "auto" }: StructuredDataRe
 
                   <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                     <div className="flex flex-col gap-1.5">
-                      <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Distributor</span>
+                      <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">Customer</span>
                       <div className="text-[15px] font-medium text-foreground">{customer}</div>
                       {invoice.company_name && <div className="text-[13px] text-foreground/80">{invoice.company_name}</div>}
                     </div>

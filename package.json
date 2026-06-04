@@ -27,6 +27,8 @@
     "supabase:plan-warehouse-updates": "node scripts/generate-company-warehouse-updates.mjs"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.9.0",
@@ -37,9 +39,9 @@
     "dotenv": "^17.4.2",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",
-    "mssql": "^12.3.1",
     "next": "14.2.5",
     "openai": "^6.26.0",
+    "pg": "^8.21.0",
     "react": "^18",
     "react-dom": "^18",
     "recharts": "^3.7.0",
@@ -48,12 +50,16 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.4.0",
     "@types/node": "^20",
+    "@types/pg": "^8.20.0",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8",
+    "prisma": "^7.8.0",
+    "supabase": "^2.104.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vitest": "^2.1.9"

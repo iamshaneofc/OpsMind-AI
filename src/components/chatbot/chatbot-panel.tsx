@@ -709,7 +709,7 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
             "Cache-Control": "no-cache",
           },
           cache: "no-store",
-          body: JSON.stringify({ message: input }),
+          body: JSON.stringify({ messages: [...hydratedMessages, { role: "user", content: input }] }),
           signal: controller.signal,
         });
 

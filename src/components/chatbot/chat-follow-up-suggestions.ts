@@ -20,10 +20,10 @@ export type ChatTurn = { role: string; content: string };
 
 /** Starters when there is no prior context (empty thread or still loading). */
 export function getRoleStarters(role: AppRole): string[] {
-  if (role === "distributor") {
+  if (role === "manager") {
     return ["Track my order", "Show my pending orders", "Show delayed orders"];
   }
-  if (role === "warehouse") {
+  if (role === "analyst") {
     return ["Show dispatch queue", "Check inventory for my warehouse", "Show low stock products"];
   }
   return ["Show delayed orders", "Show dispatch queue", "Check inventory across warehouses", "Track an order"];
@@ -137,7 +137,7 @@ export function computeFollowUpSuggestions(
   }
 
   if (/order|track|status|dispatch|delivery|sales order|pending/i.test(lower)) {
-    if (role === "distributor") {
+    if (role === "manager") {
       if (!recentMatches(recentLower, /pending orders/i)) suggestions.push("Show my pending orders");
       if (!recentMatches(recentLower, /delayed orders/i)) suggestions.push("Show delayed orders");
     } else {
@@ -151,17 +151,17 @@ export function computeFollowUpSuggestions(
     if (!recentMatches(recentLower, /today'?s?\s+invoices|invoices for today/i)) {
       suggestions.push("Show today's invoices");
     }
-    if (role !== "distributor" && !recentMatches(recentLower, /delayed invoices/i)) {
+    if (role !== "manager" && !recentMatches(recentLower, /delayed invoices/i)) {
       suggestions.push("Show delayed invoices");
     }
   }
 
   if (/inventory|stock|low stock|reorder|warehouse/i.test(lower)) {
     if (!recentMatches(recentLower, /low stock/i)) suggestions.push("Show low stock products");
-    if (role === "warehouse" && !recentMatches(recentLower, /my warehouse|warehouse inventory/i)) {
+    if (role === "analyst" && !recentMatches(recentLower, /my warehouse|warehouse inventory/i)) {
       suggestions.push("Show inventory for my warehouse");
     }
-    if ((role === "super_admin" || role === "distributor") && !recentMatches(recentLower, /across warehouses|all warehouses/i)) {
+    if ((role === "admin" || role === "manager") && !recentMatches(recentLower, /across warehouses|all warehouses/i)) {
       suggestions.push("Show inventory across warehouses");
     }
   }

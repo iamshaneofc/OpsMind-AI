@@ -1,8 +1,8 @@
 import type { AppRole } from "@/types/auth";
 
 export function canAccessPath(role: AppRole, path: string) {
-  if (role === "super_admin") return true;
-  if (role === "distributor") {
+  if (role === "admin") return true;
+  if (role === "manager") {
     return (
       path === "/dashboard" ||
       path.startsWith("/dashboard/orders") ||
@@ -11,7 +11,7 @@ export function canAccessPath(role: AppRole, path: string) {
       path.startsWith("/dashboard/account")
     );
   }
-  if (role === "warehouse") {
+  if (role === "analyst") {
     return (
       path === "/dashboard" ||
       path.startsWith("/dashboard/orders") ||

@@ -5,7 +5,7 @@ import { getAlerts } from "@/services/operations";
 
 export default async function AlertsPage() {
   const { profile } = await requireAuthenticatedUser();
-  if (profile.role === "distributor") redirect("/dashboard");
+  if (profile.role === "manager") redirect("/dashboard");
 
   const alerts = await getAlerts(profile);
   return <AlertsPanel initialAlerts={alerts} />;

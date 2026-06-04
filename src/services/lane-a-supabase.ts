@@ -3,8 +3,31 @@
  *
  * Maps Supabase order status strings to the canonical 7-state model used by lane-a-snapshot.
  */
-import { buildLaneAOrderSnapshot } from "@/sql-server/lane-a-snapshot";
+import type { LaneAOrderSnapshot } from "@/types/lane-a";
 
+export function buildLaneAOrderSnapshot(params: {
+  status: string;
+  orderNumber: string;
+  voucherDate: string | null;
+  expectedDeliveryDate: string | null;
+  isStockTransferOrder: boolean;
+  dateOfRemoval?: string | null;
+}): LaneAOrderSnapshot {
+  return {
+    external_status: params.status,
+    explanation: "Order status tracked in Supabase.",
+    expected_delivery_band: {
+      label: params.expectedDeliveryDate ? "Expected by " + params.expectedDeliveryDate : "TBD",
+      center_date: params.expectedDeliveryDate,
+      window_start: params.expectedDeliveryDate,
+      window_end: params.expectedDeliveryDate,
+      is_indicative: true
+    },
+    next_update_by: null,
+    next_action: "wait",
+    next_action_reason: "Wait for further updates."
+  };
+}
 const ALL_SEVEN_STATES = [
   "ORDER_RECEIVED",
   "ALLOCATED_LOCAL_WAREHOUSE",

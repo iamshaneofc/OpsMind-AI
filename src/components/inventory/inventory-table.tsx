@@ -8,21 +8,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 interface InventoryRow {
   id: string | number;
-  warehouse_id: string | number;
+  warehouse_id: string | number | null;
   warehouse_name?: string | null;
+  product_id: string | number;
   available_qty: number;
   reorder_level: number;
   updated_at: string;
-  products:
-    | {
-        name: string;
-        sku: string;
-      }
-    | Array<{
-        name: string;
-        sku: string;
-      }>
-    | null;
+  products: {
+    name: string;
+    sku: string;
+  } | null;
 }
 
 interface InventoryTableProps {

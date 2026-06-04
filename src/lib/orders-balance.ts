@@ -5,7 +5,7 @@
 export function balanceOrdersForRole<
   T extends { id: number; status: string; created_at: string },
 >(orders: T[], role: string): T[] {
-  const quota = role === "super_admin" ? 100 : 20;
+  const quota = role === "admin" ? 100 : 20;
   if (orders.length === 0) return [];
 
   const statusPriority: string[] = [

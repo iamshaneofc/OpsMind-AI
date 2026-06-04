@@ -5,7 +5,7 @@ import { OrdersTable } from "@/components/orders/orders-table";
 import type { AppRole } from "@/types/auth";
 
 interface OrderRow {
-  id: number;
+  id: string | number;
   order_number: string;
   status: string;
   customer_name: string | null;
