@@ -158,3 +158,11 @@ export function roleLabel(role: AppRole) {
   if (role === "analyst") return "Analyst";
   return "Manager";
 }
+
+export async function getCustomersForRole(profile: UserProfile) {
+  // Can filter by company_id or warehouse_id if we want, but since they're global customers in this demo:
+  return await prisma.customer.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 100
+  });
+}
