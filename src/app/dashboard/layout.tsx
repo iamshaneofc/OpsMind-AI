@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { TopNav } from "@/components/dashboard/top-nav";
 import { NavigationLoader } from "@/components/dashboard/navigation-loader";
+import { CommandPalette } from "@/components/command-palette";
 import { requireAuthenticatedUser } from "@/services/auth";
 
 export default async function DashboardLayout({
@@ -18,6 +19,7 @@ export default async function DashboardLayout({
         <TopNav profile={profile} />
         {children}
       </main>
+      <CommandPalette role={profile.role} />
     </div>
   );
 }

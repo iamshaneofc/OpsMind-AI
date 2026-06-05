@@ -496,16 +496,24 @@ const MessageBubble = ({
   return (
     <motion.div
       key={`${message.role}-${index}`}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className={`flex flex-col gap-2 w-full max-w-3xl ${message.role === "user" ? "ml-auto" : "mr-auto"}`}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, type: "spring", stiffness: 250, damping: 25 }}
+      className={`flex w-full max-w-4xl gap-4 ${message.role === "user" ? "ml-auto justify-end" : "mr-auto"}`}
     >
+      {message.role === "assistant" && (
+        <div className="shrink-0 mt-1">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/20 text-primary shadow-sm">
+            <Sparkles size={18} />
+          </div>
+        </div>
+      )}
+      
       <div
         className={
           message.role === "user"
-            ? "self-end rounded-2xl rounded-tr-sm bg-muted border border-border/40 px-5 py-3 text-[15px] leading-relaxed text-foreground shadow-sm max-w-[85%]"
-            : "self-start w-full space-y-3"
+            ? "rounded-2xl rounded-tr-sm bg-gradient-to-br from-white/10 to-white/5 border border-white/10 px-5 py-4 text-[15px] leading-relaxed text-white shadow-sm max-w-[85%] backdrop-blur-sm"
+            : "w-full space-y-4 rounded-2xl rounded-tl-sm border border-white/5 bg-black/20 px-6 py-5 shadow-sm max-w-[90%] backdrop-blur-sm"
         }
       >
         {message.role === "user" ? (
@@ -516,17 +524,17 @@ const MessageBubble = ({
               <LaneAQuickView snapshot={parsedAssistant.laneA} orderNumber={parsedAssistant.orderNumberFromJson} />
             ) : null}
             {textContent?.trim() && !hasStructuredData ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {collapseFullResponse ? (
                   <>
                     {introAndRest.intro && (
-                      <div className="text-[15px] break-words leading-relaxed text-foreground/90 px-1 mb-2">
+                      <div className="text-[15px] break-words leading-relaxed text-white/90 mb-2">
                         {stripBold(introAndRest.intro)}
                       </div>
                     )}
                     {showAssistantQuickView ? <AssistantQuickView text={textContent} /> : null}
                     {introAndRest.closing && (
-                      <div className="text-[14px] break-words leading-relaxed text-foreground/80 px-1 pt-1">
+                      <div className="text-[14px] break-words leading-relaxed text-white/80 pt-1">
                         {stripBold(introAndRest.closing)}
                       </div>
                     )}
@@ -563,15 +571,15 @@ const MessageBubble = ({
                           )}
                           
                           {hasPlainText && (
-                            <details className="mt-2 rounded-xl border border-border/50 bg-background/50 shadow-sm px-4 py-3">
-                              <summary className="cursor-pointer select-none text-sm font-medium text-foreground/80">
-                                Show details
+                            <details className="mt-4 rounded-xl border border-white/10 bg-black/40 shadow-sm px-5 py-4 transition-all">
+                              <summary className="cursor-pointer select-none text-sm font-semibold tracking-wide text-primary uppercase">
+                                View detailed analysis
                               </summary>
-                              <p className="mt-3 text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
+                              <p className="mt-4 text-sm leading-relaxed text-white/80 whitespace-pre-wrap border-t border-white/5 pt-4">
                                 {plainTextLines.slice(0, SHOW_DETAILS_PLAIN_TEXT_MAX_LINES).join("\n")}
                               </p>
                               {plainTextLines.length > SHOW_DETAILS_PLAIN_TEXT_MAX_LINES ? (
-                                <p className="mt-2 text-xs text-muted-foreground">
+                                <p className="mt-3 text-xs text-muted-foreground italic">
                                   Long reply — only part is shown here. Ask in chat if you need more.
                                 </p>
                               ) : null}
@@ -583,7 +591,7 @@ const MessageBubble = ({
                   </>
                 ) : (
                   <>
-                    <div className="text-[15px] break-words leading-relaxed text-foreground/90 px-1">
+                    <div className="text-[15px] break-words leading-relaxed text-white/90">
                       {stripBold(textContent)}
                     </div>
                     {!hasStructuredCard ? <AssistantQuickView text={textContent} /> : null}
@@ -599,13 +607,21 @@ const MessageBubble = ({
             !textContent?.trim() &&
             !parsedAssistant?.laneA &&
             !parsedAssistant?.structuredData ? (
-              <div className="text-[15px] break-words leading-relaxed text-foreground/90 px-1">
+              <div className="text-[15px] break-words leading-relaxed text-white/90">
                 {message.content}
               </div>
             ) : null}
           </>
         )}
       </div>
+
+      {message.role === "user" && (
+        <div className="shrink-0 mt-1">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 border border-white/20 text-white shadow-sm font-bold">
+            U
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };
@@ -774,16 +790,16 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
       <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent">
         {hydratedMessages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center pb-10">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-500/10 text-teal-500 ring-1 ring-teal-500/20 shadow-lg shadow-teal-500/5">
-              <Sparkles size={32} />
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 text-primary ring-1 ring-primary/20 shadow-xl shadow-primary/10">
+              <Sparkles size={40} />
             </div>
-            <h3 className="mb-2 text-2xl font-bold tracking-tight text-foreground/90">How can I help you today?</h3>
-            <p className="max-w-md text-[15px] text-muted-foreground">
-              Ask about orders, inventory, or operations. I&apos;m here to streamline your workflow.
+            <h3 className="mb-3 text-3xl font-bold tracking-tight text-white">How can I help you today?</h3>
+            <p className="max-w-md text-base text-muted-foreground leading-relaxed">
+              Ask about orders, inventory, or operations. I&apos;m here to streamline your workflow with real-time AI intelligence.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col space-y-8 items-center">
+          <div className="flex flex-col space-y-8 items-center w-full">
             <AnimatePresence mode="popLayout">
               {hydratedMessages.map((message, index) => (
                 <MessageBubble
@@ -795,16 +811,23 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
             </AnimatePresence>
             {loading && (
               <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="self-start flex items-center gap-3 w-fit rounded-2xl rounded-tl-sm bg-muted/40 px-5 py-3 text-sm text-muted-foreground border border-border/30"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="self-start flex gap-4 w-full max-w-4xl"
               >
-                <span>OpsMind AI is analyzing</span>
-                <span className="flex gap-0.5 mt-1">
-                  <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0 }} className="h-1 w-1 bg-muted-foreground rounded-full"></motion.span>
-                  <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.2 }} className="h-1 w-1 bg-muted-foreground rounded-full"></motion.span>
-                  <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.4 }} className="h-1 w-1 bg-muted-foreground rounded-full"></motion.span>
-                </span>
+                <div className="shrink-0 mt-1">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/20 text-primary shadow-sm">
+                    <Sparkles size={18} className="animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 w-fit rounded-2xl rounded-tl-sm bg-black/20 border border-white/5 px-6 py-4 shadow-sm backdrop-blur-sm">
+                  <span className="text-sm font-medium text-primary tracking-wide">OpsMind AI is thinking</span>
+                  <span className="flex gap-1.5 mt-0.5">
+                    <motion.span animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0 }} className="h-1.5 w-1.5 bg-primary rounded-full"></motion.span>
+                    <motion.span animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.2 }} className="h-1.5 w-1.5 bg-primary rounded-full"></motion.span>
+                    <motion.span animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.4 }} className="h-1.5 w-1.5 bg-primary rounded-full"></motion.span>
+                  </span>
+                </div>
               </motion.div>
             )}
             <div ref={messagesEndRef} className="h-4" />

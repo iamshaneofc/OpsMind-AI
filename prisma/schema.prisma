@@ -98,3 +98,12 @@ model InventoryMovement {
   product     Product   @relation(fields: [productId], references: [id])
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
 }
+
+model AiProviderConfig {
+  id         String   @id @default(uuid())
+  provider   String   @unique
+  apiKey     String
+  isActive   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

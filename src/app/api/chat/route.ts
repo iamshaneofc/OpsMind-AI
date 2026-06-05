@@ -21,7 +21,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Messages array required" }, { status: 400 });
     }
 
-    const openai = getOpenAIClient();
+    let openai;
+    try {
+      openai = await getOpenAIClient();
+    } catch (error: any) {
+      if (error.message === "NO_API_KEY_CONFIGURED") {
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("No active AI provider configured. Please configure an API key in the Settings center."));
+            controller.close();
+          }
+        });
+        return new Response(stream, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+      }
+      throw error;
+    }
 
     // 1. Initial call to model
     const initialResponse = await openai.chat.completions.create({
