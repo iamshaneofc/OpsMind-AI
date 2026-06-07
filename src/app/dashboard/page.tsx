@@ -10,6 +10,11 @@ export default async function DashboardPage() {
     ordersInLocalWarehouse: 0,
     awaitingFactory: 0,
     ordersInCentralWarehouse: 0,
+    revenue: 0,
+    profit: 0,
+    inventoryHealth: 0,
+    fulfillmentRate: 0,
+    customerGrowth: 0,
     ordersByStatus: [] as Array<{ name: string; value: number }>,
     ordersPipeline: [] as Array<{ name: string; value: number }>,
   };
@@ -25,6 +30,7 @@ export default async function DashboardPage() {
       role={profile.role}
       companyId={profile.company_id}
       warehouseId={profile.warehouse_id}
+      email={profile.email}
       initialMetrics={metrics}
     />
   );

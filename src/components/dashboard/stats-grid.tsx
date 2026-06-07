@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Clock4, Factory, MapPin, Package, TrendingUp, TrendingDown } from "lucide-react";
+import { Building2, Clock4, Factory, MapPin, Package, TrendingUp, TrendingDown, Users, LineChart as LineChartIcon } from "lucide-react";
 import Link from "next/link";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
@@ -11,6 +11,11 @@ interface StatsGridProps {
   ordersInLocalWarehouse: number;
   awaitingFactory: number;
   ordersInCentralWarehouse: number;
+  revenue: number;
+  profit: number;
+  inventoryHealth: number;
+  fulfillmentRate: number;
+  customerGrowth: number;
 }
 
 // Generate some random sparkline data
@@ -23,69 +28,87 @@ const generateSparkline = (base: number) => {
 export function StatsGrid(metrics: StatsGridProps) {
   const items = [
     {
+      key: "revenue",
+      title: "Revenue",
+      icon: TrendingUp,
+      color: "text-emerald-400",
+      bg: "bg-emerald-400/10",
+      href: "/dashboard/insights",
+      trend: "+18.2%",
+      trendUp: true,
+      sparkline: generateSparkline(120),
+      sparkColor: "#34d399",
+      displayValue: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(metrics.revenue),
+    },
+    {
+      key: "profit",
+      title: "Profit Margin",
+      icon: LineChartIcon,
+      color: "text-blue-400",
+      bg: "bg-blue-400/10",
+      href: "/dashboard/insights",
+      trend: "+4.1%",
+      trendUp: true,
+      sparkline: generateSparkline(80),
+      sparkColor: "#60a5fa",
+      displayValue: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(metrics.profit),
+    },
+    {
       key: "totalOrders",
       title: "Total Orders",
       icon: Package,
-      color: "text-cyan-400",
-      bg: "bg-cyan-400/10",
+      color: "text-indigo-400",
+      bg: "bg-indigo-400/10",
       href: "/dashboard/orders",
       trend: "+12.5%",
       trendUp: true,
       sparkline: generateSparkline(100),
-      sparkColor: "#22d3ee"
+      sparkColor: "#818cf8",
+      displayValue: metrics.totalOrders.toLocaleString(),
     },
     {
-      key: "inProgress",
-      title: "In Progress",
-      icon: Clock4,
-      color: "text-indigo-400",
-      bg: "bg-indigo-400/10",
-      href: "/dashboard/orders?view=in-progress",
-      trend: "+4.2%",
-      trendUp: true,
-      sparkline: generateSparkline(50),
-      sparkColor: "#818cf8"
-    },
-    {
-      key: "ordersInLocalWarehouse",
-      title: "Local WH",
-      icon: MapPin,
+      key: "inventory",
+      title: "Inventory Health",
+      icon: Factory,
       color: "text-amber-400",
       bg: "bg-amber-400/10",
-      href: "/dashboard/orders?view=local-warehouse",
+      href: "/dashboard/inventory",
       trend: "-2.1%",
       trendUp: false,
-      sparkline: generateSparkline(30),
-      sparkColor: "#fbbf24"
+      sparkline: generateSparkline(40),
+      sparkColor: "#fbbf24",
+      displayValue: `${metrics.inventoryHealth}/100`,
     },
     {
-      key: "awaitingFactory",
-      title: "Awaiting Factory",
-      icon: Factory,
-      color: "text-orange-400",
-      bg: "bg-orange-400/10",
-      href: "/dashboard/orders?view=awaiting-factory",
-      trend: "+8.9%",
-      trendUp: true,
-      sparkline: generateSparkline(20),
-      sparkColor: "#fb923c"
-    },
-    {
-      key: "ordersInCentralWarehouse",
-      title: "Central WH",
-      icon: Building2,
-      color: "text-emerald-400",
-      bg: "bg-emerald-400/10",
-      href: "/dashboard/orders?view=central-warehouse",
+      key: "fulfillment",
+      title: "Fulfillment Rate",
+      icon: Clock4,
+      color: "text-cyan-400",
+      bg: "bg-cyan-400/10",
+      href: "/dashboard/orders?view=in-progress",
       trend: "+1.2%",
       trendUp: true,
-      sparkline: generateSparkline(80),
-      sparkColor: "#34d399"
+      sparkline: generateSparkline(95),
+      sparkColor: "#22d3ee",
+      displayValue: `${metrics.fulfillmentRate.toFixed(1)}%`,
+    },
+    {
+      key: "customers",
+      title: "Customer Growth",
+      icon: Users,
+      color: "text-purple-400",
+      bg: "bg-purple-400/10",
+      href: "/dashboard/customers",
+      trend: "+8.9%",
+      trendUp: true,
+      sparkline: generateSparkline(60),
+      sparkColor: "#c084fc",
+      displayValue: metrics.customerGrowth.toLocaleString(),
     },
   ] as const;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       {items.map((item) => {
         const Icon = item.icon;
         // @ts-ignore
@@ -102,10 +125,14 @@ export function StatsGrid(metrics: StatsGridProps) {
                   {item.trend}
                 </div>
               </div>
-              
-              <p className="text-3xl font-bold tracking-tight text-white mb-1">{val}</p>
-              <CardTitle className="text-sm font-medium tracking-wide text-muted-foreground">{item.title}</CardTitle>
-              
+              <div className="space-y-1 z-10">
+                <CardDescription className="font-medium text-muted-foreground uppercase text-xs tracking-wider">
+                  {item.title}
+                </CardDescription>
+                <div className="text-3xl font-bold tracking-tight text-white drop-shadow-md">
+                  {item.displayValue}
+                </div>
+              </div>
               <div className="absolute bottom-0 left-0 right-0 h-16 opacity-30 group-hover:opacity-100 transition-opacity pointer-events-none">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={item.sparkline}>

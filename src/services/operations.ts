@@ -13,6 +13,11 @@ export interface DashboardMetrics {
   ordersInLocalWarehouse: number;
   awaitingFactory: number;
   ordersInCentralWarehouse: number;
+  revenue: number;
+  profit: number;
+  inventoryHealth: number;
+  fulfillmentRate: number;
+  customerGrowth: number;
   ordersByStatus: Array<{ name: string; value: number }>;
   ordersPipeline: Array<{ name: string; value: number }>;
 }
@@ -55,26 +60,44 @@ const emptyMetrics = (): DashboardMetrics => ({
   ordersInLocalWarehouse: 0,
   awaitingFactory: 0,
   ordersInCentralWarehouse: 0,
+  revenue: 0,
+  profit: 0,
+  inventoryHealth: 0,
+  fulfillmentRate: 0,
+  customerGrowth: 0,
   ordersByStatus: [],
   ordersPipeline: [],
 });
 
 export async function getDashboardMetrics(profile: UserProfile): Promise<DashboardMetrics> {
   const orders = await getOrdersForRole(profile, { balanced: false, limit: 5000 });
+  const customersCount = await prisma.customer.count();
+  
   if (!orders.length) {
-    return emptyMetrics();
+    return { ...emptyMetrics(), customerGrowth: customersCount };
   }
   const totalOrders = orders.length;
   const inProgress = orders.filter((o) => isOrdersInProgressStatus(o.status)).length;
   const ordersInLocalWarehouse = orders.filter((o) => isOrdersLocalWarehouseStatus(o.status)).length;
   const awaitingFactory = orders.filter((o) => isOrdersAwaitingFactoryStatus(o.status)).length;
   const ordersInCentralWarehouse = orders.filter((o) => isOrdersCentralWarehouseStatus(o.status)).length;
+  
+  const revenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+  const profit = revenue * 0.324; // Simulated 32.4% margin
+  const deliveredCount = orders.filter(o => o.status === "DELIVERED").length;
+  const fulfillmentRate = totalOrders > 0 ? (deliveredCount / totalOrders) * 100 : 0;
+  
   return {
     totalOrders,
     inProgress,
     ordersInLocalWarehouse,
     awaitingFactory,
     ordersInCentralWarehouse,
+    revenue,
+    profit,
+    inventoryHealth: 94, // Mocked 94/100 health score
+    fulfillmentRate,
+    customerGrowth: customersCount,
     ordersByStatus: buildStatusCounts(orders),
     ordersPipeline: buildPipelineCounts(orders),
   };

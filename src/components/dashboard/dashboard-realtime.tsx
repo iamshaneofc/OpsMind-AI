@@ -7,7 +7,7 @@ import type { AppRole } from "@/types/auth";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowRight, Sparkles, TrendingUp, AlertTriangle, Package, Activity, 
-  Users, CheckCircle2, Clock, Truck, ShieldAlert 
+  Users, CheckCircle2, Clock, Truck, ShieldAlert, MessageSquare, FileText 
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Area, AreaChart, ComposedChart, Bar } from 'recharts';
 
@@ -15,12 +15,18 @@ interface DashboardRealtimeProps {
   role: AppRole;
   companyId: number | null;
   warehouseId: number | null;
+  email?: string;
   initialMetrics: {
     totalOrders: number;
     inProgress: number;
     ordersInLocalWarehouse: number;
     awaitingFactory: number;
     ordersInCentralWarehouse: number;
+    revenue: number;
+    profit: number;
+    inventoryHealth: number;
+    fulfillmentRate: number;
+    customerGrowth: number;
     ordersByStatus: Array<{ name: string; value: number }>;
     ordersPipeline: Array<{ name: string; value: number }>;
   };
@@ -41,9 +47,12 @@ export function DashboardRealtime({
   role,
   companyId,
   warehouseId,
+  email,
   initialMetrics,
 }: DashboardRealtimeProps) {
   const metrics = initialMetrics;
+  const firstName = email ? email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').split(' ')[0] : 'Executive';
+  const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
 
   const topSignals = useMemo(() => {
     const signals: Array<{ label: string; value: number; variant: "secondary" | "warning" | "danger" | "success" }> = [];
@@ -56,24 +65,31 @@ export function DashboardRealtime({
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
-      {/* HEADER */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="bg-gradient-to-br from-white to-white/50 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-            Executive Overview
+      {/* SECTION 1: PERSONALIZED EXECUTIVE HEADER */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-4 border-b border-white/5">
+        <div className="space-y-3">
+          <h1 className="bg-gradient-to-br from-white to-white/70 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+            Good Morning, {capitalizedName}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Real-time business intelligence and operational health. Scope:{" "}
-            <span className="font-medium text-foreground">
-              {role === "admin" ? "All warehouses" : role === "analyst" ? `Warehouse ${warehouseId ?? "—"}` : `Company ${companyId ?? "—"}`}
-            </span>
-          </p>
+          <div className="space-y-1 text-base text-muted-foreground">
+            <p>
+              <span className="text-success font-medium">Revenue increased 18%</span> this month.
+            </p>
+            <p>
+              <span className="text-warning font-medium">3 operational alerts</span> require attention.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary text-xs py-1 px-3">
-            <Sparkles size={12} className="mr-1.5" />
-            AI Synchronized
-          </Badge>
+        
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
+            <MessageSquare size={16} />
+            Ask Assistant
+          </button>
+          <button className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10">
+            <FileText size={16} />
+            View Reports
+          </button>
         </div>
       </div>
 
@@ -84,6 +100,11 @@ export function DashboardRealtime({
         ordersInLocalWarehouse={metrics.ordersInLocalWarehouse}
         awaitingFactory={metrics.awaitingFactory}
         ordersInCentralWarehouse={metrics.ordersInCentralWarehouse}
+        revenue={metrics.revenue}
+        profit={metrics.profit}
+        inventoryHealth={metrics.inventoryHealth}
+        fulfillmentRate={metrics.fulfillmentRate}
+        customerGrowth={metrics.customerGrowth}
       />
 
       <div className="grid gap-6 xl:grid-cols-3">
