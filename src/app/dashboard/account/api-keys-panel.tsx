@@ -227,9 +227,9 @@ export function ApiKeysPanel() {
                   <td className="px-6 py-4 text-muted-foreground font-mono">{p.maskedKey}</td>
                   <td className="px-6 py-4">
                     {p.isActive ? (
-                      <Badge variant="outline" className="border-success/30 text-success bg-success/10 font-normal">Active</Badge>
+                      <Badge variant="default" className="border-success/30 text-success bg-success/10 font-normal">Active</Badge>
                     ) : (
-                      <Badge variant="outline" className="border-white/10 text-muted-foreground bg-white/5 font-normal">Inactive</Badge>
+                      <Badge variant="default" className="border-white/10 text-muted-foreground bg-white/5 font-normal">Inactive</Badge>
                     )}
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">

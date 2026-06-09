@@ -123,7 +123,7 @@ export default function CustomersPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant="outline" className={`
+                    <Badge variant="default" className={`
                       ${customer.churnRisk === 'High' ? 'border-destructive/30 text-destructive bg-destructive/10' : 
                         customer.churnRisk === 'Medium' ? 'border-warning/30 text-warning bg-warning/10' : 
                         'border-success/30 text-success bg-success/10'}
@@ -172,7 +172,7 @@ export default function CustomersPage() {
                         <div>
                           <h2 className="text-xl font-bold text-white">{selectedCustomer.name}</h2>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="border-white/10 bg-white/5 text-xs font-normal">
+                            <Badge variant="default" className="border-white/10 bg-white/5 text-xs font-normal">
                               {selectedCustomer.tier}
                             </Badge>
                             <span className="flex items-center gap-1 text-xs text-success">

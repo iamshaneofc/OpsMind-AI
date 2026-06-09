@@ -43,7 +43,7 @@ export default async function ReportsPage() {
                   <CardDescription className="text-xs text-muted-foreground mt-0.5">{report.date} · {report.type}</CardDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full h-8 w-8">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full h-8 w-8">
                 <Download size={16} />
               </Button>
             </div>

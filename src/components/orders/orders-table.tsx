@@ -115,7 +115,7 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
           {getMockValue(row.id)}
         </TableCell>
         <TableCell className="text-right">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="ghost" size="sm" className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
             <MoreHorizontal size={16} />
           </Button>
         </TableCell>
@@ -130,7 +130,7 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
           <div>
             <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
               Orders Database
-              <Badge variant="outline" className="border-primary/20 bg-primary/10 text-primary text-xs font-normal">
+              <Badge variant="default" className="border-primary/20 bg-primary/10 text-primary text-xs font-normal">
                 {filtered.length} Records
               </Badge>
             </CardTitle>
@@ -298,7 +298,7 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
                         <div className="p-4 rounded-xl bg-black/20 border border-white/10">
                           <p className="text-sm font-semibold text-white">{selectedOrder.customer_name}</p>
                           <p className="text-xs text-muted-foreground mt-1">Enterprise Account · Tier 1</p>
-                          <Button variant="link" className="px-0 text-primary h-auto mt-2 text-xs">View CRM Profile</Button>
+                          <Button variant="ghost" className="px-0 text-primary h-auto mt-2 text-xs hover:bg-transparent">View CRM Profile</Button>
                         </div>
                       </div>
                     )}

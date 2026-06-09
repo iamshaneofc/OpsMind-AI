@@ -82,7 +82,7 @@ export async function getDashboardMetrics(profile: UserProfile): Promise<Dashboa
   const awaitingFactory = orders.filter((o) => isOrdersAwaitingFactoryStatus(o.status)).length;
   const ordersInCentralWarehouse = orders.filter((o) => isOrdersCentralWarehouseStatus(o.status)).length;
   
-  const revenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+  const revenue = orders.reduce((sum, order) => sum + (order.order_value || 0), 0);
   const profit = revenue * 0.324; // Simulated 32.4% margin
   const deliveredCount = orders.filter(o => o.status === "DELIVERED").length;
   const fulfillmentRate = totalOrders > 0 ? (deliveredCount / totalOrders) * 100 : 0;

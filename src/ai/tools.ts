@@ -129,8 +129,8 @@ export async function executeAiTool(toolName: string, args: any, profile: UserPr
           by: ['productId', 'warehouseId'],
           _sum: { quantity: true },
         });
-        const lowStock = stock.filter(s => (s._sum.quantity || 0) < (args.threshold || 50));
-        return await Promise.all(lowStock.map(async (s) => {
+        const lowStock = stock.filter((s: any) => (s._sum.quantity || 0) < (args.threshold || 50));
+        return await Promise.all(lowStock.map(async (s: any) => {
           const product = await prisma.product.findUnique({ where: { id: s.productId }});
           const warehouse = await prisma.warehouse.findUnique({ where: { id: s.warehouseId }});
           return { product, warehouse, quantity: s._sum.quantity };
