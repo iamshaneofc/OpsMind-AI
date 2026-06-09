@@ -58,6 +58,8 @@ export function mapRoleIdToAppRole(roleId: number | null | undefined): AppRole {
   return "manager";
 }
 
+import { prisma } from "@/lib/db";
+
 export const getCurrentUserProfile = cache(
   async (): Promise<{ userId: number; profile: UserProfile } | null> => {
     const supabase = createSupabaseServerClient();
@@ -69,9 +71,37 @@ export const getCurrentUserProfile = cache(
 
     const email = user.email ?? "";
     let role: AppRole = "manager";
-    if (email.includes("admin")) role = "admin";
-    else if (email.includes("warehouse") || email.includes("analyst")) role = "analyst";
-    else if (email.includes("distributor") || email.includes("manager")) role = "manager";
+    
+    try {
+      const userRoleRecord = await prisma.userRole.findUnique({
+        where: { email },
+      });
+      
+      if (userRoleRecord) {
+        const dbRole = userRoleRecord.role.toLowerCase();
+        if (dbRole === "admin" || dbRole === "manager" || dbRole === "analyst") {
+          role = dbRole as AppRole;
+        }
+      } else {
+        // Fallback or auto-create basic role based on email if we still want that? No, just default to manager.
+        // Or if email contains admin just for bootstrapping:
+        if (email.includes("admin")) role = "admin";
+        else if (email.includes("warehouse") || email.includes("analyst")) role = "analyst";
+        
+        // Auto-create record so they show up in settings
+        await prisma.userRole.create({
+          data: {
+            email,
+            role: role.toUpperCase(),
+          }
+        }).catch(e => console.error("Failed to auto-create UserRole:", e));
+      }
+    } catch (e) {
+      console.error("Error fetching UserRole from DB:", e);
+      // Fallback to email logic
+      if (email.includes("admin")) role = "admin";
+      else if (email.includes("warehouse") || email.includes("analyst")) role = "analyst";
+    }
 
     const profile: UserProfile = {
       user_id: 1,
@@ -102,10 +132,10 @@ export async function requireAuthenticatedUser() {
 export function canAccessSection(role: AppRole, section: string) {
   if (role === "admin") return true;
   if (role === "manager") {
-    return ["dashboard", "orders", "inventory", "chatbot", "account"].includes(section);
+    return ["dashboard", "orders", "inventory", "chatbot", "account", "customers", "insights", "reports"].includes(section);
   }
   if (role === "analyst") {
-    return ["", "orders", "inventory", "chatbot", "account", "alerts"].includes(
+    return ["", "orders", "inventory", "chatbot", "account", "alerts", "customers", "insights", "reports"].includes(
       section,
     );
   }

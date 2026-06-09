@@ -8,6 +8,7 @@ export default async function AccountPage() {
     <AccountClient 
       initialName={profile.full_name} 
       email={profile.email} 
+      role={profile.role}
     />
   );
 }

@@ -95,6 +95,7 @@ export function DashboardRealtime({
 
       {/* SECTION 1: EXECUTIVE KPI OVERVIEW */}
       <StatsGrid
+        role={role}
         totalOrders={metrics.totalOrders}
         inProgress={metrics.inProgress}
         ordersInLocalWarehouse={metrics.ordersInLocalWarehouse}
@@ -160,52 +161,62 @@ export function DashboardRealtime({
           </div>
         </Card>
 
-        {/* SECTION 2: FINANCIAL ANALYTICS */}
-        <Card className="glass-card p-6 xl:col-span-2 shadow-lg shadow-black/20">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <CardTitle className="text-lg font-semibold tracking-tight text-white mb-1">Financial Trajectory</CardTitle>
-              <CardDescription className="text-sm">Revenue vs Cost comparison over the last 7 months.</CardDescription>
+        {/* SECTION 2: FINANCIAL ANALYTICS (Hidden for Analysts) */}
+        {role !== "analyst" && (
+          <Card className="glass-card p-6 xl:col-span-2 shadow-lg shadow-black/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <div>
+                <CardTitle className="text-lg font-semibold tracking-tight text-white mb-1">
+                  {role === "admin" ? "Financial Trajectory" : "Revenue Summary"}
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  {role === "admin" 
+                    ? "Revenue vs Cost comparison over the last 7 months." 
+                    : "Revenue trend over the last 7 months."}
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <select className="bg-background border border-white/10 rounded-md text-xs px-3 py-1.5 text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50">
+                  <option>Last 7 Months</option>
+                  <option>Year to Date</option>
+                  <option>All Time</option>
+                </select>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <select className="bg-background border border-white/10 rounded-md text-xs px-3 py-1.5 text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50">
-                <option>Last 7 Months</option>
-                <option>Year to Date</option>
-                <option>All Time</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="h-[320px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={financialData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis 
-                  stroke="rgba(255,255,255,0.4)" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(value) => `$${value / 1000}k`}
-                />
-                <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                  itemStyle={{ fontSize: '13px' }}
-                  formatter={(value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value) || 0)}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#4F46E5" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-                <Bar dataKey="profit" barSize={20} fill="#10B981" radius={[4, 4, 0, 0]} />
-                <Line type="monotone" dataKey="cost" stroke="#EF4444" strokeWidth={2} dot={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+            <div className="h-[320px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={financialData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis 
+                    stroke="rgba(255,255,255,0.4)" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `$${value / 1000}k`}
+                  />
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: '#0A0A0A', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                    itemStyle={{ fontSize: '13px' }}
+                    formatter={(value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value) || 0)}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#4F46E5" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+                  <Bar dataKey="profit" barSize={20} fill="#10B981" radius={[4, 4, 0, 0]} />
+                  {role === "admin" && (
+                    <Line type="monotone" dataKey="cost" stroke="#EF4444" strokeWidth={2} dot={false} />
+                  )}
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        )}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">

@@ -6,6 +6,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 
 interface StatsGridProps {
+  role?: string;
   totalOrders: number;
   inProgress: number;
   ordersInLocalWarehouse: number;
@@ -26,7 +27,7 @@ const generateSparkline = (base: number) => {
 };
 
 export function StatsGrid(metrics: StatsGridProps) {
-  const items = [
+  const allItems = [
     {
       key: "revenue",
       title: "Revenue",
@@ -105,10 +106,14 @@ export function StatsGrid(metrics: StatsGridProps) {
       sparkColor: "#c084fc",
       displayValue: metrics.customerGrowth.toLocaleString(),
     },
-  ] as const;
+  ];
+
+  const items = metrics.role === "analyst" 
+    ? allItems.filter(item => item.key !== "revenue" && item.key !== "profit")
+    : allItems;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <div className={`grid gap-4 sm:grid-cols-2 xl:grid-cols-3 ${metrics.role === 'analyst' ? '2xl:grid-cols-4' : '2xl:grid-cols-6'}`}>
       {items.map((item) => {
         const Icon = item.icon;
         // @ts-ignore

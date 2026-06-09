@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { ApiKeysPanel } from "./api-keys-panel";
+import { TeamManagementPanel } from "./team-management-panel";
 
 interface AccountClientProps {
   initialName: string | null;
   email: string;
+  role: string;
 }
 
-export function AccountClient({ initialName, email }: AccountClientProps) {
+export function AccountClient({ initialName, email, role }: AccountClientProps) {
   const [activeTab, setActiveTab] = useState("profile");
   
   const fullName = initialName || email.split('@')[0];
@@ -28,8 +30,8 @@ export function AccountClient({ initialName, email }: AccountClientProps) {
     { id: "workspace", label: "Workspace", icon: Building },
     { id: "security", label: "Security", icon: Shield },
     { id: "api", label: "API Keys", icon: Key },
-    { id: "users", label: "User Management", icon: Users },
-    { id: "roles", label: "Role Management", icon: UserCheck },
+    ...(role === "admin" ? [{ id: "team", label: "Team Management", icon: Users }] : []),
+    { id: "roles", label: "Role Permissions", icon: UserCheck },
     { id: "audit", label: "Audit Logs", icon: Activity },
     { id: "preferences", label: "System Preferences", icon: Settings },
   ];
@@ -107,6 +109,12 @@ export function AccountClient({ initialName, email }: AccountClientProps) {
           {activeTab === "api" && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
               <ApiKeysPanel />
+            </motion.div>
+          )}
+
+          {activeTab === "team" && role === "admin" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <TeamManagementPanel currentEmail={email} />
             </motion.div>
           )}
 
