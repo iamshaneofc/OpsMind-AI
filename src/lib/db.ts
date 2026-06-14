@@ -2,10 +2,15 @@ import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
+// Strip pgbouncer=true since the pg library doesn't understand it — 
+// Supabase adds it for Prisma's native driver but pg handles pooling itself
+const rawUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
+const connectionString = rawUrl.replace('?pgbouncer=true', '').replace('&pgbouncer=true', '');
+
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  ssl: connectionString.includes('supabase.com') ? { rejectUnauthorized: false } : undefined,
+  max: 1, // Limit connections for serverless
 });
 const adapter = new PrismaPg(pool);
 
