@@ -16,6 +16,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [emailPlaceholder, setEmailPlaceholder] = useState("name@opsmind.ai");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,7 +49,7 @@ export function LoginForm() {
           <Input
             id="email"
             type="email"
-            placeholder="name@opsmind.ai"
+            placeholder={emailPlaceholder}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -85,7 +86,12 @@ export function LoginForm() {
             variant="outline" 
             size="sm"
             className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
-            onClick={() => { setEmail("admin@opsmind.ai"); setPassword("password123"); }}
+            onClick={() => { 
+              setEmail(""); 
+              setPassword(""); 
+              setEmailPlaceholder("Enter your email..."); 
+              document.getElementById("email")?.focus();
+            }}
           >
             Admin
           </Button>

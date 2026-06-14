@@ -1,6 +1,7 @@
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { LineChart, Sparkles, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { requireAuthenticatedUser } from "@/services/auth";
+import { InsightsCharts } from "@/components/dashboard/InsightsCharts";
 
 export default async function InsightsPage() {
   await requireAuthenticatedUser();
@@ -62,6 +63,8 @@ export default async function InsightsPage() {
           </CardDescription>
         </Card>
       </div>
+
+      <InsightsCharts />
 
       <div className="glass-card p-8 text-center border-white/5 mt-8">
         <Sparkles size={32} className="mx-auto mb-4 text-primary/50" />

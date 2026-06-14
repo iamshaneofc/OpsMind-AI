@@ -15,13 +15,14 @@ async function main() {
     warehouseData.map((data) => prisma.warehouse.create({ data }))
   );
 
-  // Create Customers (100)
+  // Create Customers (10)
   console.log('Seeding customers...');
-  const customerData = Array.from({ length: 100 }).map(() => ({
+  const customerData = Array.from({ length: 10 }).map(() => ({
     name: faker.company.name(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
     address: faker.location.streetAddress(),
+    location: faker.location.city(),
     status: faker.helpers.arrayElement(['ACTIVE', 'ACTIVE', 'ACTIVE', 'INACTIVE']),
   }));
   const customers = await Promise.all(
@@ -42,53 +43,51 @@ async function main() {
     productData.map((data) => prisma.product.create({ data }))
   );
 
-  // Create Orders and OrderItems (1000 orders, ~5 items each)
+  // Create Orders and OrderItems (50 orders, ~5 items each)
   console.log('Seeding orders and order items...');
   const orders = [];
-  // Insert in batches of 100 to avoid memory issues
-  for (let i = 0; i < 10; i++) {
-    const batchOrders = Array.from({ length: 100 }).map(() => {
-      const customer = faker.helpers.arrayElement(customers);
-      const warehouse = faker.helpers.arrayElement(warehouses);
-      const numItems = faker.number.int({ min: 1, max: 10 });
-      let totalAmount = 0;
-      
-      const items = Array.from({ length: numItems }).map(() => {
-        const product = faker.helpers.arrayElement(products);
-        const quantity = faker.number.int({ min: 1, max: 50 });
-        const unitPrice = product.price;
-        const totalPrice = quantity * unitPrice;
-        totalAmount += totalPrice;
-        return {
-          productId: product.id,
-          quantity,
-          unitPrice,
-          totalPrice,
-        };
-      });
-
+  // Insert in single batch
+  const batchOrders = Array.from({ length: 50 }).map(() => {
+    const customer = faker.helpers.arrayElement(customers);
+    const warehouse = faker.helpers.arrayElement(warehouses);
+    const numItems = faker.number.int({ min: 1, max: 10 });
+    let totalAmount = 0;
+    
+    const items = Array.from({ length: numItems }).map(() => {
+      const product = faker.helpers.arrayElement(products);
+      const quantity = faker.number.int({ min: 1, max: 50 });
+      const unitPrice = product.price;
+      const totalPrice = quantity * unitPrice;
+      totalAmount += totalPrice;
       return {
-        orderNumber: 'ORD-' + faker.string.alphanumeric({ length: 8, casing: 'upper' }),
-        customerId: customer.id,
-        warehouseId: warehouse.id,
-        status: faker.helpers.arrayElement(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'DELIVERED', 'DELAYED', 'CANCELLED']),
-        totalAmount,
-        orderDate: faker.date.recent({ days: 365 }),
-        expectedDelivery: faker.date.soon({ days: 14 }),
-        items: {
-          create: items,
-        },
+        productId: product.id,
+        quantity,
+        unitPrice,
+        totalPrice,
       };
     });
 
-    for (const order of batchOrders) {
-      const createdOrder = await prisma.order.create({
-        data: order,
-      });
-      orders.push(createdOrder);
-    }
-    console.log(`Seeded order batch ${i + 1}/10`);
+    return {
+      orderNumber: 'ORD-' + faker.string.alphanumeric({ length: 8, casing: 'upper' }),
+      customerId: customer.id,
+      warehouseId: warehouse.id,
+      status: faker.helpers.arrayElement(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RECEIVED', 'DELAYED', 'CANCELLED', 'AWAITING_FACTORY', 'AWAITING_DISPATCH']),
+      totalAmount,
+      orderDate: faker.date.recent({ days: 365 }),
+      expectedDelivery: faker.date.soon({ days: 14 }),
+      items: {
+        create: items,
+      },
+    };
+  });
+
+  for (const order of batchOrders) {
+    const createdOrder = await prisma.order.create({
+      data: order,
+    });
+    orders.push(createdOrder);
   }
+  console.log(`Seeded order batch of 50`);
 
   // Create Invoices (200)
   console.log('Seeding invoices...');
@@ -118,7 +117,7 @@ async function main() {
 
   // Create Inventory Movements
   console.log('Seeding inventory movements...');
-  const movementData = Array.from({ length: 500 }).map(() => {
+  const movementData = Array.from({ length: 50 }).map(() => {
     const product = faker.helpers.arrayElement(products);
     const warehouse = faker.helpers.arrayElement(warehouses);
     const type = faker.helpers.arrayElement(['RESTOCK', 'SALE', 'ADJUSTMENT']);

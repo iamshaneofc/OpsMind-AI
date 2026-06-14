@@ -82,6 +82,7 @@ export default function CustomersPage() {
               <tr>
                 <th className="px-6 py-4 font-medium text-white">Account Name</th>
                 <th className="px-6 py-4 font-medium text-white">Contact</th>
+                <th className="px-6 py-4 font-medium text-white">Location</th>
                 <th className="px-6 py-4 font-medium text-white">Lifetime Value</th>
                 <th className="px-6 py-4 font-medium text-white">Churn Risk</th>
                 <th className="px-6 py-4 font-medium text-white">Last Active</th>
@@ -116,6 +117,9 @@ export default function CustomersPage() {
                         <span className="text-xs">{customer.phone}</span>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 text-muted-foreground text-sm">
+                    {customer.location || customer.address || 'N/A'}
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-medium text-emerald-400">
