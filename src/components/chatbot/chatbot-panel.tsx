@@ -769,7 +769,7 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
         }
       }
     },
-    [prompt, loading, abortController, addMessage, setLoading, updateLastAssistantMessage],
+    [prompt, loading, abortController, addMessage, setLoading, updateLastAssistantMessage, hydratedMessages],
   );
 
   const handleClearChat = useCallback(() => {

@@ -8,18 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Mock API call simulation
+
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
 
   useEffect(() => {
-    // Fetch real data but we mock the extra CRM fields
+
     fetch('/api/dashboard/customers')
       .then(res => res.json())
       .then(data => {
-        // Hydrate with CRM mock data
+
         const hydrated = data.map((c: any, i: number) => ({
           ...c,
           ltv: (i * 12500 + 45000) % 350000 + 10000,
