@@ -4,7 +4,7 @@ This document outlines the architecture for adding WhatsApp as a communication c
 
 ## Overview
 
-The Wati integration adds WhatsApp as an additional channel that uses the **same AI engine, ERP services, and authentication logic** as the existing web chatbot. This avoids duplicating AI orchestration and keeps ERP query logic centralized.
+The Wati integration adds WhatsApp as an additional channel that uses the **same AI engine, operations services, and authentication logic** as the existing web chatbot. This avoids duplicating AI orchestration and keeps query logic centralized.
 
 ## Architecture Diagram
 
@@ -70,12 +70,12 @@ The Wati integration adds WhatsApp as an additional channel that uses the **same
 │                                                              │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌────────────┐  │
 │  │ Auth Service    │  │ ERP Services     │  │ Supabase   │  │
-│  │ src/services/   │  │ src/sql-server/  │  │ Client     │  │
-│  │ auth.ts         │  │ client.ts        │  │            │  │
+│  │ src/services/   │  │ src/ai/          │  │ Client     │  │
+│  │ auth.ts         │  │ tools.ts         │  │            │  │
 │  │                 │  │ operations.ts    │  │            │  │
 │  │ - User profile  │  │                  │  │ - Users    │  │
-│  │ - ERP accounts  │  │ - Order queries  │  │ - Companies│  │
-│  │ - Role mapping  │  │ - Inventory      │  │ - Auth     │  │
+│  │ - Role mapping  │  │ - Order queries  │  │ - Companies│  │
+│  │ - Profile load  │  │ - Inventory      │  │ - Auth     │  │
 │  └──────────────────┘  └──────────────────┘  └────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -121,11 +121,11 @@ NEW_USER → AUTHENTICATING → AUTHENTICATED → [ONBOARDING] → ACTIVE
 
 **Flow**:
 1. Look up user by phone in Supabase `users` table
-2. Load ERP account mapping via existing `loadCompanyErpAccounts()`
+2. Load user profile and role mapping via existing auth service
 3. Return profile for session creation
 
 **Reuses**:
-- `loadCompanyErpAccounts()` from `src/services/auth.ts`
+- `getUserProfile()` from `src/services/auth.ts`
 - `createSupabaseServerClient()` from `src/supabase/server.ts`
 - Role mapping from `mapRoleIdToAppRole()`
 
@@ -167,10 +167,8 @@ NEW_USER → AUTHENTICATING → AUTHENTICATED → [ONBOARDING] → ACTIVE
 | OpenAI client | `src/ai/openai.ts` | Chat orchestrator |
 | AI tools definition | `src/ai/tools.ts` | Chat orchestrator |
 | executeTool function | `src/ai/tools.ts` | Chat orchestrator |
+| Operations service | `src/services/operations.ts` | Chat orchestrator |
 | Auth service | `src/services/auth.ts` | WhatsApp auth |
-| loadCompanyErpAccounts | `src/services/auth.ts` | WhatsApp auth |
-| SQL Server client | `src/sql-server/client.ts` | ERP queries |
-| SQL Server operations | `src/sql-server/operations.ts` | ERP queries |
 | Supabase client | `src/supabase/server.ts` | Auth, user lookup |
 | Supabase admin | `src/supabase/admin.ts` | Session storage |
 
@@ -218,10 +216,10 @@ User messages via WhatsApp
   └────────┬────────────────┘
            │
            ▼
-  ┌─────────────────────────┐
-  │ Load ERP accounts       │
-  │ (reuse auth.ts)         │
-  └────────┬────────────────┘
+   ┌─────────────────────────┐
+   │ Load user profile       │
+   │ (reuse auth.ts)         │
+   └────────┬────────────────┘
            │
            ▼
   Create authenticated session
@@ -258,7 +256,9 @@ Chat Orchestrator
 ┌─────────────────────┐
 │ Tool executes ERP   │
 │ queries via         │
-│ src/sql-server/     │
+│ src/services/       │
+│ operations.ts       │
+│ (Supabase/Prisma)   │
 └──────────┬──────────┘
            │
            ▼

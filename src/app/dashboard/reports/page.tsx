@@ -1,10 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { requireAuthenticatedUser } from "@/services/auth";
 import { ReportsList } from "@/components/dashboard/ReportsList";
 
-export default async function ReportsPage() {
-  await requireAuthenticatedUser();
+export default function ReportsPage() {
+  const [filterType, setFilterType] = useState("all");
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -17,13 +19,20 @@ export default async function ReportsPage() {
             Downloadable operational summaries and financial breakdowns.
           </p>
         </div>
-        <Button variant="outline" className="w-full sm:w-auto bg-white/5 border-white/10 text-white hover:bg-white/10">
-          <Filter size={16} className="mr-2" />
-          Filter Reports
-        </Button>
+        <div className="flex items-center gap-2">
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="h-9 rounded-md border border-white/10 bg-black/20 px-3 text-sm text-white focus:ring-1 focus:ring-primary/50 outline-none"
+          >
+            <option value="all">All Types</option>
+            <option value="PDF">PDF Only</option>
+            <option value="CSV">CSV Only</option>
+          </select>
+        </div>
       </div>
 
-      <ReportsList />
+      <ReportsList filterType={filterType} />
     </div>
   );
 }

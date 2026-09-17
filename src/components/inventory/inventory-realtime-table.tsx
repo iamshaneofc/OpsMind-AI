@@ -12,7 +12,7 @@ interface InventoryRow {
   available_qty: number;
   reorder_level: number;
   updated_at: string;
-  products: { name: string; sku: string } | null;
+  products: { name: string; sku: string; cost?: number | null } | null;
 }
 
 interface InventoryRealtimeTableProps {

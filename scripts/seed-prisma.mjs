@@ -1,8 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 import pg from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { loadLocalEnv } from './_env.mjs';
 
-const pool = new pg.Pool({ connectionString: "postgresql://postgres.hyjtguabepsmcxknzpwm:snehanshu9%40A@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres" });
+loadLocalEnv();
+
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  console.error("Missing DATABASE_URL environment variable.");
+  process.exit(1);
+}
+
+const pool = new pg.Pool({ connectionString: databaseUrl });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 

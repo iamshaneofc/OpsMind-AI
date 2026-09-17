@@ -95,22 +95,26 @@ export function LoginForm() {
           >
             Admin
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
-            onClick={() => { setEmail("manager@opsmind.ai"); setPassword("password123"); }}
-          >
-            Manager
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
-            onClick={() => { setEmail("analyst@opsmind.ai"); setPassword("password123"); }}
-          >
-            Analyst
-          </Button>
+          {process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
+              onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER!); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ""); }}
+            >
+              Manager
+            </Button>
+          )}
+          {process.env.NEXT_PUBLIC_DEMO_EMAIL_ANALYST && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
+              onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_EMAIL_ANALYST!); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ""); }}
+            >
+              Analyst
+            </Button>
+          )}
         </div>
       </div>
     </div>

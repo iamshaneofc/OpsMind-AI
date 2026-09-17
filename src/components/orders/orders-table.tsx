@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { AppRole } from "@/types/auth";
 import { matchesOrdersView, type DashboardOrdersView } from "@/lib/orders-view-filters";
-import { Download, FileText, X, Package, MoreHorizontal } from "lucide-react";
+import { Download, FileText, X, Package, MoreHorizontal, Check, Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const statusColor: Record<string, "default" | "warning" | "danger" | "success" | "secondary"> = {
@@ -19,6 +19,8 @@ const statusColor: Record<string, "default" | "warning" | "danger" | "success" |
   CANCELLED: "danger",
 };
 
+const allStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "DELAYED", "CANCELLED"];
+
 interface OrdersTableProps {
   role: AppRole;
   rows: Array<{
@@ -26,8 +28,10 @@ interface OrdersTableProps {
     order_number: string;
     status: string;
     customer_name?: string | null;
+    customer_email?: string | null;
     expected_delivery_date: string | null;
     created_at: string;
+    order_value?: number | null;
   }>;
 }
 
@@ -45,23 +49,39 @@ function presetLabel(view: DashboardOrdersView): string {
   }
 }
 
-const getMockValue = (id: string | number) => {
-  const num = typeof id === "string" ? parseInt(id.replace(/\D/g, '') || "1") : id;
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format((num % 1000) * 12.50 + 50);
-};
-
-const getMockPriority = (id: string | number) => {
-  const num = typeof id === "string" ? parseInt(id.replace(/\D/g, '') || "1") : id;
-  if (num % 5 === 0) return { label: "High", color: "text-destructive bg-destructive/10 border-destructive/20" };
-  if (num % 3 === 0) return { label: "Medium", color: "text-warning bg-warning/10 border-warning/20" };
+function getPriorityFromStatus(status: string) {
+  if (status === "DELAYED") return { label: "High", color: "text-destructive bg-destructive/10 border-destructive/20" };
+  if (status === "PENDING" || status === "PROCESSING") return { label: "Medium", color: "text-warning bg-warning/10 border-warning/20" };
   return { label: "Standard", color: "text-muted-foreground bg-white/5 border-white/10" };
-};
+}
+
+function downloadCsv(rows: OrdersTableProps["rows"]) {
+  const header = "Order,Customer,Status,Date,Value";
+  const csvRows = rows.map(r => {
+    const value = r.order_value != null ? r.order_value.toFixed(2) : "";
+    const date = new Date(r.created_at).toLocaleDateString();
+    const customer = (r.customer_name ?? "").replace(/,/g, " ");
+    return `${r.order_number},${customer},${r.status},${date},${value}`;
+  });
+  const csv = [header, ...csvRows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "orders.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export function OrdersTable({ rows, role }: OrdersTableProps) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [extraExpanded, setExtraExpanded] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<typeof rows[0] | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | number | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
   
   const showCustomerColumn = role === "admin" || role === "manager";
   const view = (searchParams?.get("view") ?? "all") as DashboardOrdersView;
@@ -83,8 +103,27 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
   const hiddenCount = Math.max(0, filtered.length - VISIBLE_LIMIT);
   const hasHidden = showCustomerColumn && hiddenCount > 0;
 
+  const handleStatusChange = async (orderId: string | number, newStatus: string) => {
+    setUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/dashboard/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUpdatingStatus(false);
+      setMenuOpenId(null);
+    }
+  };
+
   const renderRow = (row: (typeof filtered)[0]) => {
-    const priority = getMockPriority(row.id);
+    const priority = getPriorityFromStatus(row.status);
     return (
       <TableRow 
         key={row.id} 
@@ -112,12 +151,48 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
           {new Date(row.created_at).toLocaleDateString()}
         </TableCell>
         <TableCell className="font-medium text-white">
-          {getMockValue(row.id)}
+          {row.order_value != null 
+            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(row.order_value)
+            : "—"}
         </TableCell>
         <TableCell className="text-right">
-          <Button variant="ghost" size="sm" className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-            <MoreHorizontal size={16} />
-          </Button>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpenId(menuOpenId === row.id ? null : row.id);
+              }}
+            >
+              <MoreHorizontal size={16} />
+            </Button>
+            {menuOpenId === row.id && (
+              <div className="absolute right-0 top-full mt-1 z-50 bg-slate-900 border border-white/10 rounded-lg shadow-xl py-1 min-w-[160px]">
+                <button
+                  className="w-full px-3 py-2 text-sm text-left text-white hover:bg-white/10 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(row.order_number);
+                    setMenuOpenId(null);
+                  }}
+                >
+                  Copy Order Number
+                </button>
+                <button
+                  className="w-full px-3 py-2 text-sm text-left text-white hover:bg-white/10 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedOrder(row);
+                    setMenuOpenId(null);
+                  }}
+                >
+                  View Details
+                </button>
+              </div>
+            )}
+          </div>
         </TableCell>
       </TableRow>
     );
@@ -152,13 +227,14 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
               />
             </div>
             <div className="flex items-center gap-2 border-l border-white/10 pl-3">
-              <Button variant="outline" size="sm" className="h-9 bg-white/5 border-white/10 hover:bg-white/10">
-                <FileText size={14} className="mr-2" />
-                CSV
-              </Button>
-              <Button variant="outline" size="sm" className="h-9 bg-white/5 border-white/10 hover:bg-white/10">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 bg-white/5 border-white/10 hover:bg-white/10"
+                onClick={() => downloadCsv(filtered)}
+              >
                 <Download size={14} className="mr-2" />
-                PDF
+                CSV
               </Button>
             </div>
           </div>
@@ -288,27 +364,61 @@ export function OrdersTable({ rows, role }: OrdersTableProps) {
                       </div>
                       <div className="p-4 rounded-xl bg-white/5 border border-white/5">
                         <p className="text-xs text-muted-foreground mb-1">Total Value</p>
-                        <p className="text-sm font-medium text-emerald-500">{getMockValue(selectedOrder.id)}</p>
+                        <p className="text-sm font-medium text-emerald-500">
+                          {selectedOrder.order_value != null 
+                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(selectedOrder.order_value)
+                            : "—"}
+                        </p>
                       </div>
                     </div>
+
+                    {/* Status Change (admin/manager only) */}
+                    {(role === "admin" || role === "manager") && (
+                      <div>
+                        <h3 className="text-sm font-medium text-white mb-3 uppercase tracking-wider">Update Status</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {allStatuses.map((s) => (
+                            <Button
+                              key={s}
+                              size="sm"
+                              variant={selectedOrder.status === s ? "default" : "outline"}
+                              className={`text-xs h-7 ${selectedOrder.status === s ? 'bg-primary text-primary-foreground' : 'bg-white/5 border-white/10 text-white'}`}
+                              disabled={updatingStatus || selectedOrder.status === s}
+                              onClick={() => handleStatusChange(selectedOrder.id, s)}
+                            >
+                              {updatingStatus && selectedOrder.status !== s ? (
+                                <Loader2 size={12} className="mr-1 animate-spin" />
+                              ) : selectedOrder.status === s ? (
+                                <Check size={12} className="mr-1" />
+                              ) : null}
+                              {s}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {showCustomerColumn && (
                       <div>
                         <h3 className="text-sm font-medium text-white mb-3 uppercase tracking-wider">Customer Details</h3>
                         <div className="p-4 rounded-xl bg-black/20 border border-white/10">
                           <p className="text-sm font-semibold text-white">{selectedOrder.customer_name}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Enterprise Account · Tier 1</p>
-                          <Button variant="ghost" className="px-0 text-primary h-auto mt-2 text-xs hover:bg-transparent">View CRM Profile</Button>
                         </div>
                       </div>
                     )}
                   </div>
                   
                   <div className="p-6 border-t border-white/5 bg-black/20 flex gap-3">
-                    <Button className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
-                      Manage Order
-                    </Button>
-                    <Button variant="outline" className="flex-1 bg-transparent border-white/10 hover:bg-white/5">
+                    <Button
+                      variant="outline"
+                      className="flex-1 bg-transparent border-white/10 hover:bg-white/5"
+                      onClick={() => {
+                        const email = (selectedOrder as any).customer_email || "";
+                        if (email) {
+                          window.open(`mailto:${email}?subject=Order ${selectedOrder.order_number}`, "_blank");
+                        }
+                      }}
+                    >
                       Contact
                     </Button>
                   </div>

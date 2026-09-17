@@ -6,7 +6,7 @@ loadLocalEnv();
 const BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 const SUPABASE_URL = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
 const SUPABASE_ANON = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-const PASSWORD = "OpsMind@12345";
+const PASSWORD = process.env.SEED_PASSWORD || "changeme";
 
 function assert(condition, message) {
   if (!condition) {

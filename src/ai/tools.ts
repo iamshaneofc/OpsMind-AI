@@ -92,13 +92,13 @@ export const aiTools = {
   }
 };
 
-export async function executeAiTool(toolName: string, args: any, profile: UserProfile) {
+export async function executeAiTool(toolName: string, args: Record<string, unknown>, profile: UserProfile) {
   try {
     switch (toolName) {
       // Orders
       case "getRecentOrders":
         return await prisma.order.findMany({
-          take: args.limit || 10,
+          take: (args.limit as number) || 10,
           orderBy: { createdAt: 'desc' },
           include: { customer: true, warehouse: true }
         });
@@ -119,7 +119,7 @@ export async function executeAiTool(toolName: string, args: any, profile: UserPr
         });
       case "getOrderDetails":
         return await prisma.order.findUnique({
-          where: { orderNumber: args.orderNumber },
+          where: { orderNumber: args.orderNumber as string },
           include: { customer: true, items: { include: { product: true } }, invoices: true }
         });
 
@@ -129,22 +129,48 @@ export async function executeAiTool(toolName: string, args: any, profile: UserPr
           by: ['productId', 'warehouseId'],
           _sum: { quantity: true },
         });
-        const lowStock = stock.filter((s: any) => (s._sum.quantity || 0) < (args.threshold || 50));
-        return await Promise.all(lowStock.map(async (s: any) => {
-          const product = await prisma.product.findUnique({ where: { id: s.productId }});
-          const warehouse = await prisma.warehouse.findUnique({ where: { id: s.warehouseId }});
-          return { product, warehouse, quantity: s._sum.quantity };
+        const threshold = (args.threshold as number) || 50;
+        const lowStock = stock.filter((s) => (s._sum.quantity || 0) < threshold);
+        
+        // Batch fetch to avoid N+1
+        const productIds = [...new Set(lowStock.map(s => s.productId))];
+        const warehouseIds = [...new Set(lowStock.map(s => s.warehouseId))];
+        const [products, warehouses] = await Promise.all([
+          prisma.product.findMany({ where: { id: { in: productIds } } }),
+          prisma.warehouse.findMany({ where: { id: { in: warehouseIds } } }),
+        ]);
+        const productMap = new Map(products.map(p => [p.id, p]));
+        const warehouseMap = new Map(warehouses.map(w => [w.id, w]));
+        
+        return lowStock.map((s) => ({
+          product: productMap.get(s.productId) || null,
+          warehouse: warehouseMap.get(s.warehouseId) || null,
+          quantity: s._sum.quantity
         }));
       }
       case "getInventoryValuation": {
-        const products = await prisma.product.findMany();
-        const totalValuation = products.reduce((acc, p) => acc + (p.price * 100), 0); // Mock 100 per product
-        return { totalValuation, currency: "USD", note: "Approximate valuation based on avg stock levels." };
+        const stockMovements = await prisma.inventoryMovement.groupBy({
+          by: ['productId'],
+          _sum: { quantity: true },
+        });
+        const productIds = stockMovements.map(s => s.productId);
+        const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
+        const productMap = new Map(products.map(p => [p.id, p]));
+        
+        let totalValuation = 0;
+        for (const movement of stockMovements) {
+          const product = productMap.get(movement.productId);
+          if (product) {
+            const qty = movement._sum.quantity || 0;
+            totalValuation += qty * (product.cost || product.price);
+          }
+        }
+        return { totalValuation, currency: "USD" };
       }
       case "getWarehouseInventory": {
         return await prisma.inventoryMovement.groupBy({
           by: ['productId'],
-          where: { warehouseId: args.warehouseId },
+          where: { warehouseId: args.warehouseId as string },
           _sum: { quantity: true },
         });
       }
@@ -155,11 +181,15 @@ export async function executeAiTool(toolName: string, args: any, profile: UserPr
           by: ['customerId'],
           _sum: { totalAmount: true },
           orderBy: { _sum: { totalAmount: 'desc' } },
-          take: args.limit || 5
+          take: (args.limit as number) || 5
         });
-        return await Promise.all(top.map(async (t) => {
-          const c = await prisma.customer.findUnique({ where: { id: t.customerId } });
-          return { customer: c, totalSpent: t._sum.totalAmount };
+        const customerIds = top.map(t => t.customerId);
+        const customers = await prisma.customer.findMany({ where: { id: { in: customerIds } } });
+        const customerMap = new Map(customers.map(c => [c.id, c]));
+        
+        return top.map((t) => ({
+          customer: customerMap.get(t.customerId) || null,
+          totalSpent: t._sum.totalAmount
         }));
       }
       case "getInactiveCustomers": {
@@ -177,7 +207,7 @@ export async function executeAiTool(toolName: string, args: any, profile: UserPr
       }
       case "getCustomerHistory": {
         return await prisma.order.findMany({
-          where: { customerId: args.customerId },
+          where: { customerId: args.customerId as string },
           orderBy: { orderDate: 'desc' }
         });
       }
@@ -198,25 +228,36 @@ export async function executeAiTool(toolName: string, args: any, profile: UserPr
 
       // Analytics
       case "getRevenueTrends": {
-        return { message: "Revenue has grown by 15% month-over-month.", data: [] }; // placeholder
+        const paidInvoices = await prisma.invoice.findMany({
+          where: { status: 'PAID' },
+          include: { order: true }
+        });
+        const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+        return { totalRevenue, currency: "USD", invoiceCount: paidInvoices.length };
       }
       case "getTopProducts": {
         const topItems = await prisma.orderItem.groupBy({
           by: ['productId'],
           _sum: { quantity: true, totalPrice: true },
           orderBy: { _sum: { totalPrice: 'desc' } },
-          take: args.limit || 5
+          take: (args.limit as number) || 5
         });
-        return await Promise.all(topItems.map(async (t) => {
-          const p = await prisma.product.findUnique({ where: { id: t.productId } });
-          return { product: p, sold: t._sum.quantity, revenue: t._sum.totalPrice };
+        const productIds = topItems.map(t => t.productId);
+        const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
+        const productMap = new Map(products.map(p => [p.id, p]));
+        
+        return topItems.map((t) => ({
+          product: productMap.get(t.productId) || null,
+          sold: t._sum.quantity,
+          revenue: t._sum.totalPrice
         }));
       }
       default:
         return { error: `Tool ${toolName} not implemented.` };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "An error occurred while executing the tool.";
     console.error(`Error executing tool ${toolName}:`, error);
-    return { error: error.message || "An error occurred while executing the tool." };
+    return { error: message };
   }
 }

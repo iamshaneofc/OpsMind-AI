@@ -20,10 +20,12 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+const SEED_PASSWORD = process.env.SEED_PASSWORD || "changeme";
+
 async function createUsers() {
   const usersToCreate = [
-    { email: 'admin@opsmindai.com', password: 'opsmind123' },
-    { email: 'user@opsmindai.com', password: 'opsmind123' }
+    { email: 'admin@opsmindai.com', password: SEED_PASSWORD },
+    { email: 'user@opsmindai.com', password: SEED_PASSWORD }
   ];
 
   for (const user of usersToCreate) {

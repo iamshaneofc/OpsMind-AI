@@ -7,7 +7,11 @@ export async function GET() {
   try {
     const { profile } = await requireAuthenticatedUser();
     const rows = await getOrdersForRole(profile);
-    return NextResponse.json(rows);
+    return NextResponse.json(rows, {
+      headers: {
+        "Cache-Control": "private, max-age=10, stale-while-revalidate=20",
+      },
+    });
   } catch (e) {
     return NextResponse.json({ error: (e as Error)?.message ?? "Unauthorized" }, { status: 401 });
   }

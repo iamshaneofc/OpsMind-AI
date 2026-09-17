@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "@/services/auth";
 import { prisma } from "@/lib/db";
 
-export async function POST(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const { profile } = await requireAuthenticatedUser();
 
@@ -11,22 +14,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, email, phone, address } = body;
+    const { status } = body;
 
-    if (!name || typeof name !== "string") {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    const validStatuses = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "DELAYED", "CANCELLED"];
+    if (!status || !validStatuses.includes(status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    const customer = await prisma.customer.create({
-      data: {
-        name: name.trim(),
-        email: email?.trim() || null,
-        phone: phone?.trim() || null,
-        address: address?.trim() || null,
-      },
+    const order = await prisma.order.update({
+      where: { id: params.id },
+      data: { status },
     });
 
-    return NextResponse.json({ success: true, customer });
+    return NextResponse.json({ success: true, order });
   } catch (e) {
     return NextResponse.json({ error: (e as Error)?.message ?? "Unauthorized" }, { status: 401 });
   }

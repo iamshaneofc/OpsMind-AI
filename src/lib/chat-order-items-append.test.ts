@@ -45,6 +45,7 @@ describe("extractOrderItemsFromToolMessages", () => {
     const messages: ChatCompletionMessageParam[] = [
       {
         role: "tool",
+        tool_call_id: "call_1",
         content: JSON.stringify({
           order_number: "8.105.260218.38",
           items: [{ product_name: "Acetic Acid", sku: "N/A", packing_id: 9991, quantity: 32, line_total: 11328 }],
@@ -60,6 +61,7 @@ describe("extractOrderItemsFromToolMessages", () => {
     const messages: ChatCompletionMessageParam[] = [
       {
         role: "tool",
+        tool_call_id: "call_1",
         content: JSON.stringify({
           order_number: "8.105.260217.16",
           items,

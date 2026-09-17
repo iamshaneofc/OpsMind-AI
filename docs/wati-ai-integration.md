@@ -75,11 +75,11 @@ WhatsApp User
 │  (src/ai/tools.ts) — REUSED, NOT DUPLICATED                             │
 │                                                                          │
 │  Tool executions use EXACT same logic as web chat:                      │
-│  • getOrderStatus → SQL Server ERP                                      │
-│  • getWarehouseInventory → SQL Server ERP                              │
-│  • getInvoiceDetails → SQL Server ERP                                   │
-│  • getProductTrackingAndInventory → SQL Server ERP                      │
-│  • getDistributors → SQL Server ERP                                     │
+│  • getOrderStatus → Supabase/Prisma                                    │
+│  • getWarehouseInventory → Supabase/Prisma                            │
+│  • getInvoiceDetails → Supabase/Prisma                                 │
+│  • getProductTrackingAndInventory → Supabase/Prisma                    │
+│  • getDistributors → Supabase/Prisma                                   │
 │  • etc.                                                                 │
 └──────────────────────────────┬──────────────────────────────────────────┘
                                │
@@ -127,7 +127,7 @@ WhatsApp User
 ┌───────────────────────────────────────────────────────────────────────────┐
 │               WhatsApp Auth (whatsapp-auth.ts)                          │
 │               • authenticateWhatsAppUser()                              │
-│               • loadCompanyErpAccounts() ← REUSE                         │
+│               • getUserProfile() ← REUSE                                │
 └───────────────────────────────┬───────────────────────────────────────────┘
                                 │
                                 ▼
@@ -157,16 +157,18 @@ WhatsApp User
 │  src/ai/openai  │  │  src/ai/tools    │  │ src/services/    │
 │                 │  │                 │  │ auth.ts │
 │  • getOpenAI    │  │  • aiTools      │  │                 │
-│    Client()     │  │  • executeTool()│  │  • loadCompany  │
-│                 │  │                 │  │    ErpAccounts  │
-│  ← REUSE        │  │  ← REUSE        │  │                 │
-│                 │  │                 │  │  ← REUSE        │
+│    Client()     │  │  • executeTool()│  │  • getUserProfile│
+│                 │  │                 │  │                 │
+│  ← REUSE        │  │  ← REUSE        │  │  ← REUSE        │
+│                 │  │                 │  │                 │
 └─────────────────┘  └────────┬────────┘  └─────────────────┘
                                │
                                ▼
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                    SQL Server ERP                                         │
-│                    • sales_order_header                                   │
+│                    Supabase/Prisma                                        │
+│                    • orders                                                │
+│                    • customers                                             │
+│                    • warehouses                                            │
 │                    • ACCOUNT_MASTER                                       │
 │                    • Location                                             │
 │                    • Product_Master                                       │
@@ -257,13 +259,13 @@ const WHATSAPP_SYSTEM_PROMPT = `You are OpsMind Operations AI...`;
 │  │ (SAME function as web chat!)               │
 │  │                                              │
 │  if (toolName === 'getOrderStatus')           │
-│    return sqlServerOps.sqlServerGetOrder...   │
+│    return operations.getOrderStatus...        │
 │  │                                              │
 └───────────────┬─────────────────────────────────┘
                 │
                 ▼
 ┌────────────────────────────────────────────────┐
-│  Same SQL Server query, same results           │
+│  Same Supabase query, same results             │
 └────────────────────────────────────────────────┘
 ```
 

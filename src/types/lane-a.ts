@@ -1,5 +1,5 @@
 /**
- * Client-safe types for Lane A snapshot (mirrors `sql-server/lane-a-snapshot.ts`).
+ * Client-safe types for Lane A snapshot.
  */
 export type LaneANextAction = "wait" | "raise_udr" | "request_transfer" | "escalate";
 

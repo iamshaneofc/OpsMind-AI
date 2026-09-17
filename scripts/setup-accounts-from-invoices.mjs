@@ -10,7 +10,7 @@ const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const PASSWORD = "OpsMind@12345";
+const PASSWORD = process.env.SEED_PASSWORD || "changeme";
 
 // ============================================================================
 // Helper Functions

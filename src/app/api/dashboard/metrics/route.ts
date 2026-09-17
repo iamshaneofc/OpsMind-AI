@@ -8,9 +8,7 @@ export async function GET() {
     const metrics = await getDashboardMetrics(profile);
     return NextResponse.json(metrics, {
       headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
+        "Cache-Control": "private, max-age=15, stale-while-revalidate=30",
       },
     });
   } catch (e) {

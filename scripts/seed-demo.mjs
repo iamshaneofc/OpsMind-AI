@@ -41,7 +41,7 @@ async function ensureAuthUser({ email, password, fullName, role }) {
   return data.user;
 }
 
-async function ensureRow(table, matchColumn, matchValue, values, selectColumns = "*") {
+async function upsertRow(table, matchColumn, matchValue, values, selectColumns = "*") {
   const { data: existing, error: fetchErr } = await admin
     .from(table)
     .select(selectColumns)
@@ -67,75 +67,11 @@ async function ensureRow(table, matchColumn, matchValue, values, selectColumns =
   return inserted?.[0];
 }
 
-async function upsertCatalog() {
-  const companyA = await ensureRow(
-    "companies",
-    "company_name",
-    "North Axis Distributors",
-    { company_name: "North Axis Distributors", status: "active" },
-    "company_id,company_name",
-  );
-  const companyB = await ensureRow(
-    "companies",
-    "company_name",
-    "BluePeak Chemicals Trade",
-    { company_name: "BluePeak Chemicals Trade", status: "active" },
-    "company_id,company_name",
-  );
-
-  const delhi = await ensureRow(
-    "warehouses",
-    "warehouse_name",
-    "Delhi Central",
-    { warehouse_name: "Delhi Central", location: "Delhi" },
-    "warehouse_id,warehouse_name",
-  );
-  const mumbai = await ensureRow(
-    "warehouses",
-    "warehouse_name",
-    "Mumbai West",
-    { warehouse_name: "Mumbai West", location: "Mumbai" },
-    "warehouse_id,warehouse_name",
-  );
-  const mumbaiCentral = await ensureRow(
-    "warehouses",
-    "warehouse_name",
-    "OpsMind Central Warehouse",
-    { warehouse_name: "OpsMind Central Warehouse", location: "Mumbai" },
-    "warehouse_id,warehouse_name",
-  );
-
-  const p1 = await ensureRow(
-    "products",
-    "sku",
-    "OpsMind-SOL-A",
-    { product_name: "OpsMind Solvent A", sku: "OpsMind-SOL-A", unit: "kg", price: 120 },
-    "product_id,product_name,sku",
-  );
-  const p2 = await ensureRow(
-    "products",
-    "sku",
-    "OpsMind-RES-B",
-    { product_name: "OpsMind Resin B", sku: "OpsMind-RES-B", unit: "kg", price: 95 },
-    "product_id,product_name,sku",
-  );
-  const p3 = await ensureRow(
-    "products",
-    "sku",
-    "OpsMind-CAT-C",
-    { product_name: "OpsMind Catalyst C", sku: "OpsMind-CAT-C", unit: "kg", price: 140 },
-    "product_id,product_name,sku",
-  );
-
-  return {
-    companies: [companyA, companyB],
-    warehouses: [delhi, mumbai, mumbaiCentral],
-    products: [p1, p2, p3],
-  };
-}
-
 async function seed() {
-  const password = "OpsMind@12345";
+  const password = process.env.SEED_PASSWORD || "changeme";
+
+  // 1. Create auth users
+  console.log("Creating auth users...");
   const adminUser = await ensureAuthUser({
     email: "super.admin@opsmindchemicals.com",
     password,
@@ -172,496 +108,278 @@ async function seed() {
     fullName: "Mumbai Warehouse Incharge",
     role: "warehouse",
   });
+  console.log("  Auth users created.");
 
-  const companyC = await ensureRow(
-    "companies",
-    "company_name",
-    "Pradeep Chemicals",
-    { company_name: "Pradeep Chemicals", status: "active" },
-    "company_id,company_name",
+  // 2. Upsert companies (schema: id uuid, name text, code text)
+  console.log("Creating companies...");
+  const companyA = await upsertRow(
+    "companies", "name", "North Axis Distributors",
+    { name: "North Axis Distributors", code: "NAD" }, "id,name"
   );
-  const companyD = await ensureRow(
-    "companies",
-    "company_name",
-    "Rohit Trading Co",
-    { company_name: "Rohit Trading Co", status: "active" },
-    "company_id,company_name",
+  const companyB = await upsertRow(
+    "companies", "name", "BluePeak Chemicals Trade",
+    { name: "BluePeak Chemicals Trade", code: "BCT" }, "id,name"
   );
+  const companyC = await upsertRow(
+    "companies", "name", "Pradeep Chemicals",
+    { name: "Pradeep Chemicals", code: "PCH" }, "id,name"
+  );
+  const companyD = await upsertRow(
+    "companies", "name", "Rohit Trading Co",
+    { name: "Rohit Trading Co", code: "RTC" }, "id,name"
+  );
+  console.log("  Companies created.");
 
-  const { companies, warehouses, products } = await upsertCatalog();
-  const companyA = companies.find((c) => c.company_name === "North Axis Distributors");
-  const companyB = companies.find((c) => c.company_name === "BluePeak Chemicals Trade");
-  const delhi = warehouses.find((w) => w.warehouse_name === "Delhi Central");
-  const mumbai = warehouses.find((w) => w.warehouse_name === "Mumbai West");
-  const mumbaiCentral = warehouses.find((w) => w.warehouse_name === "OpsMind Central Warehouse");
-  if (!companyA || !companyB || !delhi || !mumbai || !mumbaiCentral) {
-    throw new Error("Required companies/warehouses missing after upsert.");
-  }
+  // 3. Upsert warehouses (schema: id uuid, name text, location text)
+  console.log("Creating warehouses...");
+  const delhi = await upsertRow(
+    "warehouses", "name", "Delhi Central",
+    { name: "Delhi Central", location: "Delhi" }, "id,name"
+  );
+  const mumbai = await upsertRow(
+    "warehouses", "name", "Mumbai West",
+    { name: "Mumbai West", location: "Mumbai" }, "id,name"
+  );
+  const mumbaiCentral = await upsertRow(
+    "warehouses", "name", "OpsMind Central Warehouse",
+    { name: "OpsMind Central Warehouse", location: "Mumbai" }, "id,name"
+  );
+  console.log("  Warehouses created.");
 
-  const appAdmin = await ensureRow(
-    "users",
-    "email",
-    adminUser.email,
-    {
-      email: adminUser.email,
-      name: "OpsMind Super Admin",
-      password_hash: "managed-by-supabase-auth",
-      role_id: 1,
-      is_active: true,
-    },
-    "user_id,email",
+  // 4. Upsert products (schema: id uuid, name text, sku text, unit text)
+  console.log("Creating products...");
+  const p1 = await upsertRow(
+    "products", "sku", "OpsMind-SOL-A",
+    { name: "OpsMind Solvent A", sku: "OpsMind-SOL-A", unit: "kg" }, "id,name,sku"
   );
-  const appDistributor = await ensureRow(
-    "users",
-    "email",
-    distributorUser.email,
-    {
-      email: distributorUser.email,
-      name: "OpsMind Distributor",
-      password_hash: "managed-by-supabase-auth",
-      role_id: 2,
-      company_id: companyA.company_id,
-      is_active: true,
-    },
-    "user_id,email",
+  const p2 = await upsertRow(
+    "products", "sku", "OpsMind-RES-B",
+    { name: "OpsMind Resin B", sku: "OpsMind-RES-B", unit: "kg" }, "id,name,sku"
   );
-  const appPradeep = await ensureRow(
-    "users",
-    "email",
-    pradeepUser.email,
-    {
-      email: pradeepUser.email,
-      name: "Pradeep",
-      password_hash: "managed-by-supabase-auth",
-      role_id: 2,
-      company_id: companyC.company_id,
-      is_active: true,
-    },
-    "user_id,email",
+  const p3 = await upsertRow(
+    "products", "sku", "OpsMind-CAT-C",
+    { name: "OpsMind Catalyst C", sku: "OpsMind-CAT-C", unit: "kg" }, "id,name,sku"
   );
-  const appRohit = await ensureRow(
-    "users",
-    "email",
-    rohitUser.email,
-    {
-      email: rohitUser.email,
-      name: "Rohit",
-      password_hash: "managed-by-supabase-auth",
-      role_id: 2,
-      company_id: companyD.company_id,
-      is_active: true,
-    },
-    "user_id,email",
-  );
-  const appWarehouse = await ensureRow(
-    "users",
-    "email",
-    warehouseUser.email,
-    {
-      email: warehouseUser.email,
-      name: "OpsMind Warehouse Incharge",
-      password_hash: "managed-by-supabase-auth",
-      role_id: 3,
-      warehouse_id: delhi.warehouse_id,
-      is_active: true,
-    },
-    "user_id,email",
-  );
-  const appWarehouseMumbai = await ensureRow(
-    "users",
-    "email",
-    warehouseMumbaiUser.email,
-    {
-      email: warehouseMumbaiUser.email,
-      name: "Mumbai Warehouse Incharge",
-      password_hash: "managed-by-supabase-auth",
-      role_id: 3,
-      warehouse_id: mumbaiCentral.warehouse_id,
-      is_active: true,
-    },
-    "user_id,email",
-  );
-  const appUserByEmail = Object.fromEntries(
-    [appAdmin, appDistributor, appPradeep, appRohit, appWarehouse, appWarehouseMumbai].map((u) => [
-      u.email,
-      u.user_id,
-    ]),
-  );
-  const adminAppUserId = appUserByEmail[adminUser.email];
-  const distributorAppUserId = appUserByEmail[distributorUser.email];
-  const pradeepAppUserId = appUserByEmail[pradeepUser.email];
-  const rohitAppUserId = appUserByEmail[rohitUser.email];
-  const warehouseAppUserId = appUserByEmail[warehouseUser.email];
-  const warehouseMumbaiAppUserId = appUserByEmail[warehouseMumbaiUser.email];
-  if (
-    !adminAppUserId ||
-    !distributorAppUserId ||
-    !pradeepAppUserId ||
-    !rohitAppUserId ||
-    !warehouseAppUserId ||
-    !warehouseMumbaiAppUserId
-  ) {
-    throw new Error("Could not map seeded app users.");
-  }
+  console.log("  Products created.");
 
-  const orderSeed = [
+  const skuById = { "OpsMind-SOL-A": p1.id, "OpsMind-RES-B": p2.id, "OpsMind-CAT-C": p3.id };
+
+  // 5. Upsert app users (schema: id uuid FK to auth.users, email, full_name, role, company_id, warehouse_id)
+  console.log("Creating app users...");
+  const appAdmin = await upsertRow(
+    "users", "email", adminUser.email,
+    { id: adminUser.id, email: adminUser.email, full_name: "OpsMind Super Admin", role: "super_admin" },
+    "id,email"
+  );
+  const appDistributor = await upsertRow(
+    "users", "email", distributorUser.email,
+    { id: distributorUser.id, email: distributorUser.email, full_name: "OpsMind Distributor", role: "distributor", company_id: companyA.id },
+    "id,email"
+  );
+  const appPradeep = await upsertRow(
+    "users", "email", pradeepUser.email,
+    { id: pradeepUser.id, email: pradeepUser.email, full_name: "Pradeep", role: "distributor", company_id: companyC.id },
+    "id,email"
+  );
+  const appRohit = await upsertRow(
+    "users", "email", rohitUser.email,
+    { id: rohitUser.id, email: rohitUser.email, full_name: "Rohit", role: "distributor", company_id: companyD.id },
+    "id,email"
+  );
+  const appWarehouse = await upsertRow(
+    "users", "email", warehouseUser.email,
+    { id: warehouseUser.id, email: warehouseUser.email, full_name: "OpsMind Warehouse Incharge", role: "warehouse", warehouse_id: delhi.id },
+    "id,email"
+  );
+  const appWarehouseMumbai = await upsertRow(
+    "users", "email", warehouseMumbaiUser.email,
+    { id: warehouseMumbaiUser.id, email: warehouseMumbaiUser.email, full_name: "Mumbai Warehouse Incharge", role: "warehouse", warehouse_id: mumbaiCentral.id },
+    "id,email"
+  );
+  console.log("  App users created.");
+
+  const userIds = {
+    admin: appAdmin.id,
+    distributor: appDistributor.id,
+    pradeep: appPradeep.id,
+    rohit: appRohit.id,
+    warehouse: appWarehouse.id,
+    warehouseMumbai: appWarehouseMumbai.id,
+  };
+
+  // 6. Upsert orders (schema: id uuid, order_number, company_id, warehouse_id, status, expected_delivery_date)
+  console.log("Creating orders...");
+  const orderSeeds = [
     {
       order_number: "OpsMind-1024",
-      company_id: companyA.company_id,
-      created_by: distributorAppUserId,
-      order_value: 14400,
-      delivery_location: "Gurgaon",
-      warehouse_id: delhi.warehouse_id,
+      company_id: companyA.id,
+      warehouse_id: delhi.id,
       status: "IN_PREPARATION",
-      order_date: new Date().toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-2032",
-      company_id: companyB.company_id,
-      created_by: adminAppUserId,
-      order_value: 8075,
-      delivery_location: "Pune",
-      warehouse_id: mumbai.warehouse_id,
+      company_id: companyB.id,
+      warehouse_id: mumbai.id,
       status: "AWAITING_FACTORY",
-      order_date: new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() - 1 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-2034",
-      company_id: companyA.company_id,
-      created_by: warehouseAppUserId,
-      order_value: 8400,
-      delivery_location: "Noida",
-      warehouse_id: delhi.warehouse_id,
+      company_id: companyA.id,
+      warehouse_id: delhi.id,
       status: "DISPATCH_READY",
-      order_date: new Date().toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-3001",
-      company_id: companyC.company_id,
-      created_by: pradeepAppUserId,
-      order_value: 11400,
-      delivery_location: "Bangalore",
-      warehouse_id: mumbaiCentral.warehouse_id,
+      company_id: companyC.id,
+      warehouse_id: mumbaiCentral.id,
       status: "IN_PREPARATION",
-      order_date: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-3002",
-      company_id: companyC.company_id,
-      created_by: pradeepAppUserId,
-      order_value: 9500,
-      delivery_location: "Hyderabad",
-      warehouse_id: mumbaiCentral.warehouse_id,
+      company_id: companyC.id,
+      warehouse_id: mumbaiCentral.id,
       status: "DISPATCH_READY",
-      order_date: new Date().toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-3003",
-      company_id: companyC.company_id,
-      created_by: pradeepAppUserId,
-      order_value: 12600,
-      delivery_location: "Chennai",
-      warehouse_id: delhi.warehouse_id,
+      company_id: companyC.id,
+      warehouse_id: delhi.id,
       status: "IN_TRANSIT",
-      order_date: new Date(Date.now() - 5 * 86400000).toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 1 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-4001",
-      company_id: companyD.company_id,
-      created_by: rohitAppUserId,
-      order_value: 13300,
-      delivery_location: "Kolkata",
-      warehouse_id: mumbai.warehouse_id,
+      company_id: companyD.id,
+      warehouse_id: mumbai.id,
       status: "IN_PREPARATION",
-      order_date: new Date(Date.now() - 1 * 86400000).toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-4002",
-      company_id: companyD.company_id,
-      created_by: rohitAppUserId,
-      order_value: 10200,
-      delivery_location: "Ahmedabad",
-      warehouse_id: mumbaiCentral.warehouse_id,
+      company_id: companyD.id,
+      warehouse_id: mumbaiCentral.id,
       status: "AWAITING_FACTORY",
-      order_date: new Date(Date.now() - 4 * 86400000).toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10),
     },
     {
       order_number: "OpsMind-4003",
-      company_id: companyD.company_id,
-      created_by: rohitAppUserId,
-      order_value: 16800,
-      delivery_location: "Jaipur",
-      warehouse_id: delhi.warehouse_id,
+      company_id: companyD.id,
+      warehouse_id: delhi.id,
       status: "DISPATCH_READY",
-      order_date: new Date().toISOString().slice(0, 10),
       expected_delivery_date: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10),
     },
   ];
 
   const orderRows = [];
-  for (const row of orderSeed) {
-    const saved = await ensureRow("orders", "order_number", row.order_number, row, "order_id,order_number");
+  for (const row of orderSeeds) {
+    const saved = await upsertRow("orders", "order_number", row.order_number, row, "id,order_number");
     orderRows.push(saved);
   }
-  const orders = orderRows;
+  const orderByNum = Object.fromEntries(orderRows.map((o) => [o.order_number, o.id]));
+  console.log("  Orders created.");
 
-  const skuById = Object.fromEntries(products.map((p) => [p.sku, p.product_id]));
-  const orderByNum = Object.fromEntries(orders.map((o) => [o.order_number, o.order_id]));
+  // 7. Upsert order_items (schema: id uuid, order_id, product_id, quantity)
+  console.log("Creating order items...");
   const allOrderIds = Object.values(orderByNum);
   await admin.from("order_items").delete().in("order_id", allOrderIds);
-  const { error: itemsErr } = await admin.from("order_items").insert([
-    {
-      order_id: orderByNum["OpsMind-1024"],
-      product_id: skuById["OpsMind-SOL-A"],
-      quantity: 120,
-      unit_price: 120,
-    },
-    {
-      order_id: orderByNum["OpsMind-2032"],
-      product_id: skuById["OpsMind-RES-B"],
-      quantity: 85,
-      unit_price: 95,
-    },
-    {
-      order_id: orderByNum["OpsMind-2034"],
-      product_id: skuById["OpsMind-CAT-C"],
-      quantity: 60,
-      unit_price: 140,
-    },
-    {
-      order_id: orderByNum["OpsMind-3001"],
-      product_id: skuById["OpsMind-SOL-A"],
-      quantity: 95,
-      unit_price: 120,
-    },
-    {
-      order_id: orderByNum["OpsMind-3002"],
-      product_id: skuById["OpsMind-RES-B"],
-      quantity: 100,
-      unit_price: 95,
-    },
-    {
-      order_id: orderByNum["OpsMind-3003"],
-      product_id: skuById["OpsMind-CAT-C"],
-      quantity: 90,
-      unit_price: 140,
-    },
-    {
-      order_id: orderByNum["OpsMind-4001"],
-      product_id: skuById["OpsMind-SOL-A"],
-      quantity: 110,
-      unit_price: 120,
-    },
-    {
-      order_id: orderByNum["OpsMind-4002"],
-      product_id: skuById["OpsMind-RES-B"],
-      quantity: 107,
-      unit_price: 95,
-    },
-    {
-      order_id: orderByNum["OpsMind-4003"],
-      product_id: skuById["OpsMind-CAT-C"],
-      quantity: 120,
-      unit_price: 140,
-    },
-  ]);
-  if (itemsErr) throw itemsErr;
 
-  await admin
-    .from("inventory")
-    .delete()
-    .in("warehouse_id", [delhi.warehouse_id, mumbai.warehouse_id, mumbaiCentral.warehouse_id]);
+  const orderItemsData = [
+    { order_id: orderByNum["OpsMind-1024"], product_id: skuById["OpsMind-SOL-A"], quantity: 120 },
+    { order_id: orderByNum["OpsMind-2032"], product_id: skuById["OpsMind-RES-B"], quantity: 85 },
+    { order_id: orderByNum["OpsMind-2034"], product_id: skuById["OpsMind-CAT-C"], quantity: 60 },
+    { order_id: orderByNum["OpsMind-3001"], product_id: skuById["OpsMind-SOL-A"], quantity: 95 },
+    { order_id: orderByNum["OpsMind-3002"], product_id: skuById["OpsMind-RES-B"], quantity: 100 },
+    { order_id: orderByNum["OpsMind-3003"], product_id: skuById["OpsMind-CAT-C"], quantity: 90 },
+    { order_id: orderByNum["OpsMind-4001"], product_id: skuById["OpsMind-SOL-A"], quantity: 110 },
+    { order_id: orderByNum["OpsMind-4002"], product_id: skuById["OpsMind-RES-B"], quantity: 107 },
+    { order_id: orderByNum["OpsMind-4003"], product_id: skuById["OpsMind-CAT-C"], quantity: 120 },
+  ];
+  const { error: itemsErr } = await admin.from("order_items").insert(orderItemsData);
+  if (itemsErr) throw itemsErr;
+  console.log("  Order items created.");
+
+  // 8. Upsert inventory (schema: id uuid, warehouse_id, product_id, available_qty, reorder_level)
+  console.log("Creating inventory...");
+  await admin.from("inventory").delete().in("warehouse_id", [delhi.id, mumbai.id, mumbaiCentral.id]);
   const { error: inventoryErr } = await admin.from("inventory").insert([
-    {
-      warehouse_id: delhi.warehouse_id,
-      product_id: skuById["OpsMind-SOL-A"],
-      available_quantity: 140,
-    },
-    {
-      warehouse_id: delhi.warehouse_id,
-      product_id: skuById["OpsMind-CAT-C"],
-      available_quantity: 24,
-    },
-    {
-      warehouse_id: mumbai.warehouse_id,
-      product_id: skuById["OpsMind-RES-B"],
-      available_quantity: 18,
-    },
-    {
-      warehouse_id: mumbaiCentral.warehouse_id,
-      product_id: skuById["OpsMind-SOL-A"],
-      available_quantity: 200,
-    },
-    {
-      warehouse_id: mumbaiCentral.warehouse_id,
-      product_id: skuById["OpsMind-RES-B"],
-      available_quantity: 150,
-    },
-    {
-      warehouse_id: mumbaiCentral.warehouse_id,
-      product_id: skuById["OpsMind-CAT-C"],
-      available_quantity: 80,
-    },
+    { warehouse_id: delhi.id, product_id: skuById["OpsMind-SOL-A"], available_qty: 140, reorder_level: 30 },
+    { warehouse_id: delhi.id, product_id: skuById["OpsMind-CAT-C"], available_qty: 24, reorder_level: 30 },
+    { warehouse_id: mumbai.id, product_id: skuById["OpsMind-RES-B"], available_qty: 18, reorder_level: 30 },
+    { warehouse_id: mumbaiCentral.id, product_id: skuById["OpsMind-SOL-A"], available_qty: 200, reorder_level: 30 },
+    { warehouse_id: mumbaiCentral.id, product_id: skuById["OpsMind-RES-B"], available_qty: 150, reorder_level: 30 },
+    { warehouse_id: mumbaiCentral.id, product_id: skuById["OpsMind-CAT-C"], available_qty: 80, reorder_level: 30 },
   ]);
   if (inventoryErr) throw inventoryErr;
+  console.log("  Inventory created.");
 
+  // 9. Create order_status_history (schema: id uuid, order_id, status, notes, created_by)
+  console.log("Creating order status history...");
   await admin.from("order_status_history").delete().in("order_id", allOrderIds);
-
   const { error: historyErr } = await admin.from("order_status_history").insert([
-    {
-      order_id: orderByNum["OpsMind-1024"],
-      previous_status: "PENDING",
-      new_status: "IN_PREPARATION",
-      updated_by: warehouseAppUserId,
-      updated_at: new Date().toISOString(),
-    },
-    {
-      order_id: orderByNum["OpsMind-2032"],
-      previous_status: "IN_PREPARATION",
-      new_status: "AWAITING_FACTORY",
-      updated_by: adminAppUserId,
-      updated_at: new Date().toISOString(),
-    },
+    { order_id: orderByNum["OpsMind-1024"], status: "IN_PREPARATION", notes: "Order received and preparation started", created_by: userIds.warehouse },
+    { order_id: orderByNum["OpsMind-2032"], status: "AWAITING_FACTORY", notes: "Waiting for factory allocation", created_by: userIds.admin },
   ]);
   if (historyErr) throw historyErr;
+  console.log("  Order status history created.");
 
-  await admin
-    .from("alerts")
-    .delete()
-    .in("message", ["Low stock: OpsMind Catalyst C", "Delayed order: OpsMind-2032", "Dispatch ready: OpsMind-2034"]);
-
+  // 10. Create alerts (schema: id uuid, title, severity, status, warehouse_id, company_id)
+  console.log("Creating alerts...");
+  await admin.from("alerts").delete().in("title", [
+    "Low stock: OpsMind Catalyst C",
+    "Delayed order: OpsMind-2032",
+    "Dispatch ready: OpsMind-2034",
+  ]);
   const { error: alertsErr } = await admin.from("alerts").insert([
-    {
-      alert_type: "warning",
-      message: "Low stock: OpsMind Catalyst C",
-      user_id: warehouseAppUserId,
-      is_read: false,
-      order_id: orderByNum["OpsMind-2034"],
-    },
-    {
-      alert_type: "critical",
-      message: "Delayed order: OpsMind-2032",
-      user_id: adminAppUserId,
-      is_read: false,
-      order_id: orderByNum["OpsMind-2032"],
-    },
-    {
-      alert_type: "info",
-      message: "Dispatch ready: OpsMind-2034",
-      user_id: warehouseAppUserId,
-      is_read: false,
-      order_id: orderByNum["OpsMind-2034"],
-    },
+    { title: "Low stock: OpsMind Catalyst C", severity: "high", status: "open", warehouse_id: delhi.id },
+    { title: "Delayed order: OpsMind-2032", severity: "critical", status: "open", company_id: companyB.id },
+    { title: "Dispatch ready: OpsMind-2034", severity: "low", status: "open", warehouse_id: delhi.id },
   ]);
   if (alertsErr) throw alertsErr;
+  console.log("  Alerts created.");
 
-  await admin
-    .from("chatbot_messages")
-    .delete()
-    .in("user_id", [
-      adminAppUserId,
-      distributorAppUserId,
-      pradeepAppUserId,
-      rohitAppUserId,
-      warehouseAppUserId,
-      warehouseMumbaiAppUserId,
-    ]);
-
-  const { data: existingSessions } = await admin
-    .from("chatbot_sessions")
-    .select("session_id,user_id")
-    .in("user_id", [
-      distributorAppUserId,
-      pradeepAppUserId,
-      rohitAppUserId,
-      warehouseAppUserId,
-      warehouseMumbaiAppUserId,
-    ]);
-  const sessionMap = new Map((existingSessions ?? []).map((s) => [s.user_id, s.session_id]));
-  for (const uid of [
-    distributorAppUserId,
-    pradeepAppUserId,
-    rohitAppUserId,
-    warehouseAppUserId,
-    warehouseMumbaiAppUserId,
-  ]) {
-    if (sessionMap.has(uid)) continue;
-    const { data: insertedSession, error: sessionErr } = await admin
-      .from("chatbot_sessions")
-      .insert({ user_id: uid })
-      .select("session_id,user_id")
-      .single();
-    if (sessionErr) throw sessionErr;
-    sessionMap.set(uid, insertedSession.session_id);
-  }
-
+  // 11. Create chatbot_messages (schema: id uuid, user_id, role, message, response)
+  console.log("Creating chatbot messages...");
+  await admin.from("chatbot_messages").delete().in("user_id", Object.values(userIds));
   const { error: chatErr } = await admin.from("chatbot_messages").insert([
     {
-      session_id: sessionMap.get(distributorAppUserId),
-      sender: "assistant",
-      user_id: distributorAppUserId,
+      user_id: userIds.distributor,
       role: "distributor",
       message: "Where is order OpsMind-1024?",
-      response:
-        "Order OpsMind-1024\nStatus: IN_PREPARATION\nWarehouse: Delhi Central\nExpected Delivery: in 7 days",
+      response: "Order OpsMind-1024\nStatus: IN_PREPARATION\nWarehouse: Delhi Central\nExpected Delivery: in 7 days",
     },
     {
-      session_id: sessionMap.get(warehouseAppUserId),
-      sender: "assistant",
-      user_id: warehouseAppUserId,
+      user_id: userIds.warehouse,
       role: "warehouse",
       message: "What orders are ready for dispatch today?",
       response: "1 order ready for dispatch: OpsMind-2034 (Delhi Central)",
     },
   ]);
   if (chatErr) throw chatErr;
+  console.log("  Chatbot messages created.");
 
+  // 12. Verify all users can authenticate
+  console.log("\nVerifying authentication...");
   const authChecks = await Promise.all([
-    anon.auth.signInWithPassword({
-      email: "super.admin@opsmindchemicals.com",
-      password,
-    }),
-    anon.auth.signInWithPassword({
-      email: "distributor@opsmindchemicals.com",
-      password,
-    }),
-    anon.auth.signInWithPassword({
-      email: "pradeep@opsmindchemicals.com",
-      password,
-    }),
-    anon.auth.signInWithPassword({
-      email: "rohit@opsmindchemicals.com",
-      password,
-    }),
-    anon.auth.signInWithPassword({
-      email: "warehouse@opsmindchemicals.com",
-      password,
-    }),
-    anon.auth.signInWithPassword({
-      email: "warehouse.mumbai@opsmindchemicals.com",
-      password,
-    }),
+    anon.auth.signInWithPassword({ email: "super.admin@opsmindchemicals.com", password }),
+    anon.auth.signInWithPassword({ email: "distributor@opsmindchemicals.com", password }),
+    anon.auth.signInWithPassword({ email: "pradeep@opsmindchemicals.com", password }),
+    anon.auth.signInWithPassword({ email: "rohit@opsmindchemicals.com", password }),
+    anon.auth.signInWithPassword({ email: "warehouse@opsmindchemicals.com", password }),
+    anon.auth.signInWithPassword({ email: "warehouse.mumbai@opsmindchemicals.com", password }),
   ]);
   for (const check of authChecks) {
     if (check.error) throw check.error;
   }
+  console.log("  All users can authenticate.");
 
-  console.log("Seed complete.");
+  console.log("\nSeed complete!");
   console.log("Demo users:");
-  console.log("- super.admin@opsmindchemicals.com / OpsMind@12345 (Super Admin)");
-  console.log("- distributor@opsmindchemicals.com / OpsMind@12345 (Distributor - North Axis)");
-  console.log("- pradeep@opsmindchemicals.com / OpsMind@12345 (Distributor - Pradeep Chemicals)");
-  console.log("- rohit@opsmindchemicals.com / OpsMind@12345 (Distributor - Rohit Trading)");
-  console.log("- warehouse@opsmindchemicals.com / OpsMind@12345 (Warehouse - Delhi Central)");
-  console.log("- warehouse.mumbai@opsmindchemicals.com / OpsMind@12345 (Warehouse - Mumbai Central)");
+  console.log("Seed complete. Users created with SEED_PASSWORD env var.");
 }
 
 seed().catch((error) => {

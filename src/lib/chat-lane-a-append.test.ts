@@ -26,6 +26,7 @@ describe("extractLaneAFromToolMessages", () => {
     const messages: ChatCompletionMessageParam[] = [
       {
         role: "tool",
+        tool_call_id: "call_1",
         content: JSON.stringify({
           order_number: "8.1.2.3",
           lane_a: lane,
@@ -39,7 +40,7 @@ describe("extractLaneAFromToolMessages", () => {
 
   it("skips tool payloads with error", () => {
     const messages: ChatCompletionMessageParam[] = [
-      { role: "tool", content: JSON.stringify({ error: "not found" }) },
+      { role: "tool", tool_call_id: "call_1", content: JSON.stringify({ error: "not found" }) },
     ];
     const out = extractLaneAFromToolMessages(messages);
     expect(out.orderNumber).toBeNull();
@@ -50,6 +51,7 @@ describe("extractLaneAFromToolMessages", () => {
     const messages: ChatCompletionMessageParam[] = [
       {
         role: "tool",
+        tool_call_id: "call_1",
         content: JSON.stringify({
           order_number: "A",
           lane_a: { ...minimalLaneA(), explanation: "first" },
@@ -57,6 +59,7 @@ describe("extractLaneAFromToolMessages", () => {
       },
       {
         role: "tool",
+        tool_call_id: "call_2",
         content: JSON.stringify({
           order_number: "B",
           lane_a: { ...minimalLaneA(), explanation: "second" },

@@ -1,270 +1,159 @@
 # OpsMind Operations AI - Demo Guide
 
-## 🚀 Quick Start
+## Quick Start
 
-Welcome to the OpsMind Operations AI platform! This guide provides all the authentication credentials and role-based authorizations for testing the system.
-
----
-
-## 🔐 Authentication Credentials
+**URL:** `http://localhost:3001/login`
 
 **All demo users share the same password:** `OpsMind@12345`
 
+---
+
+## Authentication Credentials
+
 ### Super Admin
 - **Email:** `super.admin@opsmindchemicals.com`
-- **Password:** `OpsMind@12345`
-- **Role:** Super Admin
-- **Access Level:** Full system access
+- **Role:** Super Admin (ADMIN)
+- **Access:** Full system access - all orders, all companies, all warehouses, all data
 
 ### Distributors
-
-#### 1. OpsMind Distributor (North Axis Distributors)
-- **Email:** `distributor@opsmindchemicals.com`
-- **Password:** `OpsMind@12345`
-- **Role:** Distributor
-- **Company:** North Axis Distributors
-
-#### 2. Pradeep (Pradeep Chemicals)
-- **Email:** `pradeep@opsmindchemicals.com`
-- **Password:** `OpsMind@12345`
-- **Role:** Distributor
-- **Company:** Pradeep Chemicals
-
-#### 3. Rohit (Rohit Trading Co)
-- **Email:** `rohit@opsmindchemicals.com`
-- **Password:** `OpsMind@12345`
-- **Role:** Distributor
-- **Company:** Rohit Trading Co
+| User | Email | Company |
+|------|-------|---------|
+| OpsMind Distributor | `distributor@opsmindchemicals.com` | Bharat Auto Parts Distributors |
+| Pradeep | `pradeep@opsmindchemicals.com` | Chennai Motor Components Ltd |
+| Rohit | `rohit@opsmindchemicals.com` | Delhi Automotive Traders |
 
 ### Warehouse Incharge
-
-#### 1. Delhi Central Warehouse
-- **Email:** `warehouse@opsmindchemicals.com`
-- **Password:** `OpsMind@12345`
-- **Role:** Warehouse Incharge
-- **Warehouse:** Delhi Central
-
-#### 2. Mumbai Central Warehouse
-- **Email:** `warehouse.mumbai@opsmindchemicals.com`
-- **Password:** `OpsMind@12345`
-- **Role:** Warehouse Incharge
-- **Warehouse:** OpsMind Central Warehouse (Mumbai)
+| User | Email | Warehouse |
+|------|-------|-----------|
+| OpsMind Warehouse | `warehouse@opsmindchemicals.com` | Western Region Hub (Mumbai) |
+| Mumbai Warehouse | `warehouse.mumbai@opsmindchemicals.com` | Central Warehouse (Pune) |
 
 ---
 
-## 🔒 Role-Based Authorizations
+## Demo Data Summary
+
+| Entity | Count |
+|--------|-------|
+| Customers | 10 |
+| Orders | 100 (10 per customer) |
+| Order Items | 228 |
+| Products | 15 (automobile parts) |
+| Warehouses | 5 (Indian cities) |
+| Invoices | 100 |
+| Inventory Movements | 212 |
+| Alerts | 10 |
+
+### Order Status Distribution
+| Status | Count | Description |
+|--------|-------|-------------|
+| DELIVERED | 25 | Completed deliveries |
+| IN_PREPARATION | 22 | Being prepared at warehouse |
+| PROCESSING | 17 | Actively being processed |
+| AWAITING_FACTORY | 12 | Waiting for factory allocation |
+| DISPATCH_READY | 10 | Ready for dispatch |
+| DELAYED | 6 | Past expected delivery date |
+| IN_TRANSIT | 5 | Shipped, in transit |
+| CANCELLED | 3 | Cancelled orders |
+
+### Invoice Status Distribution
+| Status | Count |
+|--------|-------|
+| PAID | 53 |
+| UNPAID | 31 |
+| OVERDUE | 16 |
+
+### Products (Automobile Parts)
+| Product | SKU | Price (INR) |
+|---------|-----|-------------|
+| Front Brake Pad Set | BAP-FBP-001 | 1,500 |
+| Rear Brake Pad Set | BAP-RBP-002 | 1,200 |
+| Oil Filter - Petrol | BAP-OFL-003 | 250 |
+| Oil Filter - Diesel | BAP-OFD-004 | 300 |
+| Air Filter Element | BAP-AFE-005 | 450 |
+| Spark Plug Set (4 pcs) | BAP-SPK-006 | 600 |
+| Diesel Injector Nozzle | BAP-DIN-007 | 3,500 |
+| Clutch Plate Assembly | BAP-CPA-008 | 4,000 |
+| Drive Belt - Alternator | BAP-DBA-009 | 380 |
+| Coolant 1L Concentrate | BAP-CLT-010 | 300 |
+| Brake Fluid DOT4 500ml | BAP-BFD-011 | 450 |
+| Engine Oil 5W30 4L | BAP-EO5-012 | 3,200 |
+| Transmission Gear Oil 1L | BAP-TGO-013 | 650 |
+| Wheel Bearing Set | BAP-WBS-014 | 2,100 |
+| Shock Absorber Front | BAP-SAF-015 | 2,800 |
+
+### Customers
+| Customer | City |
+|----------|------|
+| Mumbai Motors Workshop | Mumbai |
+| Chennai Auto Care Center | Chennai |
+| Delhi Car Services Pvt Ltd | New Delhi |
+| Kolkata Garage Hub | Kolkata |
+| Pune Auto Works | Pune |
+| Bangalore Car Clinic | Bangalore |
+| Hyderabad Motor Garage | Hyderabad |
+| Ahmedabad Auto Solutions | Ahmedabad |
+| Jaipur Car Care Center | Jaipur |
+| Lucknow Motor Works | Lucknow |
+
+---
+
+## Role-Based Access
 
 ### Super Admin
-**Full System Access**
-
-✅ **Dashboard Access:**
-- View all operational metrics
-- See orders across all companies
-- Monitor inventory across all warehouses
-- View all alerts and notifications
-
-✅ **Orders:**
-- View all orders from all distributors
-- Track order status across the system
-- View delayed orders
-- Access order history
-
-✅ **Inventory:**
-- View inventory across all warehouses
-- Check stock levels
-- View low stock alerts
-- Monitor warehouse inventory
-
-✅ **Chatbot:**
-- Query any order in the system
-- Check inventory at any warehouse
-- View delayed orders
-- Access dispatch queue
-- Get operational insights
-
-✅ **Alerts:**
-- View all system alerts
-- Critical, warning, and info alerts
-- Order-related alerts
-- Inventory alerts
-
----
+- All orders from all companies
+- All inventory across all warehouses
+- Full chatbot access (orders, inventory, invoices, analytics)
+- All alerts
 
 ### Distributor
-**Limited Access - Own Company Data Only**
+- Only own company orders
+- No inventory access
+- Chatbot: track own orders only
 
-✅ **Dashboard Access:**
-- View own company metrics
-- See own pending orders
-- Track own order status
-
-✅ **Orders:**
-- View only own company orders
-- Track own order status
-- View own delayed orders
-- Cannot see other distributors' orders
-
-❌ **Inventory:**
-- **NO ACCESS** - Distributors cannot view inventory data
-- Cannot check warehouse stock levels
-- Cannot access inventory-related queries in chatbot
-
-✅ **Chatbot:**
-- Track own orders
-- Check own order status
-- View own pending orders
-- View own delayed orders
-- **Cannot query inventory** (will be declined by AI)
-
-❌ **Alerts:**
-- View only alerts related to own orders
-- Cannot see other distributors' alerts
-
-**Chatbot Suggestions for Distributors:**
-- "Track my order"
-- "Show my pending orders"
-- "Show delayed orders"
+### Warehouse
+- Orders assigned to their warehouse
+- Inventory at their warehouse only
+- Chatbot: warehouse orders + inventory
 
 ---
 
-### Warehouse Incharge
-**Warehouse-Specific Access**
+## Testing Scenarios
 
-✅ **Dashboard Access:**
-- View warehouse-specific metrics
-- See orders assigned to their warehouse
-- Monitor warehouse inventory
+### 1. Dashboard Metrics
+Login as Super Admin - verify:
+- Total Orders: 100
+- Revenue figures populated
+- Customer count: 10
+- Order status chart shows distribution
+- Pipeline chart shows flow
 
-✅ **Orders:**
-- View orders assigned to their warehouse
-- Track order status for warehouse orders
-- View dispatch queue for their warehouse
-- Cannot see orders from other warehouses
+### 2. Order Tracking
+- Login as any distributor
+- Orders tab shows only their company's orders
+- Status badges (Delivered, Processing, Delayed, etc.)
 
-✅ **Inventory:**
-- View inventory at their assigned warehouse only
-- Check stock levels
-- View low stock alerts for their warehouse
-- Cannot access other warehouses' inventory
+### 3. AI Chatbot
+Try these queries:
+- "Show all delayed orders"
+- "What's the stock for Front Brake Pad Set?"
+- "Revenue by distributor this quarter"
+- "Which products are below reorder level?"
+- "All orders from Mumbai Motors Workshop"
 
-✅ **Chatbot:**
-- Query orders for their warehouse
-- Check inventory at their warehouse
-- View dispatch queue
-- View low stock alerts
-- Cannot query other warehouses' data
-
-✅ **Alerts:**
-- View alerts related to their warehouse
-- Low stock alerts
-- Dispatch ready alerts
-- Order-related alerts for their warehouse
-
-**Chatbot Suggestions for Warehouse:**
-- "Show dispatch queue"
-- "Check inventory"
-- "Show low stock alerts"
+### 4. Role Restriction
+- Login as distributor
+- Try accessing inventory - should be restricted
+- Chatbot: "Check inventory" - AI should decline
 
 ---
 
-## 📋 Sample Test Orders
+## Troubleshooting
 
-### For Distributors to Test:
-
-**Pradeep (pradeep@opsmindchemicals.com):**
-- OpsMind-3001 (In Preparation)
-- OpsMind-3002 (Dispatch Ready)
-- OpsMind-3003 (In Transit)
-
-**Rohit (rohit@opsmindchemicals.com):**
-- OpsMind-4001 (In Preparation)
-- OpsMind-4002 (Awaiting Factory - Delayed)
-- OpsMind-4003 (Dispatch Ready)
-
-**OpsMind Distributor (distributor@opsmindchemicals.com):**
-- OpsMind-1024 (In Preparation)
-- OpsMind-2034 (Dispatch Ready)
+**No data showing:** Run `npm run seed:demo`
+**Chatbot not responding:** Check OpenAI API key in .env
+**Login fails:** Ensure password is `OpsMind@12345`
 
 ---
 
-## 🧪 Testing Scenarios
-
-### Test Distributor Access Control:
-1. Login as `pradeep@opsmindchemicals.com`
-2. Try chatbot query: "Check inventory in Mumbai"
-   - **Expected:** AI should decline and explain distributors cannot access inventory
-3. Try chatbot query: "Show my orders"
-   - **Expected:** Should show only Pradeep's orders (OpsMind-3001, OpsMind-3002, OpsMind-3003)
-
-### Test Warehouse Access Control:
-1. Login as `warehouse@opsmindchemicals.com` (Delhi Central)
-2. Try chatbot query: "Check inventory"
-   - **Expected:** Should show inventory for Delhi Central warehouse only
-3. Try chatbot query: "Show orders"
-   - **Expected:** Should show orders assigned to Delhi Central warehouse
-
-### Test Super Admin Access:
-1. Login as `super.admin@opsmindchemicals.com`
-2. Try chatbot query: "Show all delayed orders"
-   - **Expected:** Should show delayed orders from all companies
-3. Try chatbot query: "Check inventory in Mumbai"
-   - **Expected:** Should show inventory for Mumbai warehouses
-
----
-
-## 🎯 Key Features to Test
-
-### Chatbot Intelligence:
-- ✅ Automatic warehouse name resolution (e.g., "Mumbai" → warehouse_id)
-- ✅ Context maintenance across conversation
-- ✅ Structured data rendering (tables, cards)
-- ✅ Role-based query filtering
-
-### Realtime Updates:
-- ✅ Dashboard metrics update live
-- ✅ Orders update without refresh
-- ✅ Inventory updates in real-time
-- ✅ Chat messages sync across sessions
-
-### Security:
-- ✅ Role-based route protection
-- ✅ Data isolation per role
-- ✅ Inventory access restricted to Admin/Warehouse only
-- ✅ Distributors cannot see other companies' orders
-
----
-
-## 📝 Notes
-
-- All passwords are: `OpsMind@12345`
-- The system uses Supabase for authentication and database
-- Chatbot conversations are isolated per user session
-- All data updates in real-time using Supabase Realtime subscriptions
-- The AI chatbot respects role-based access control automatically
-
----
-
-## 🆘 Troubleshooting
-
-**Issue:** Cannot login
-- **Solution:** Ensure you're using the correct email and password (`OpsMind@12345`)
-
-**Issue:** Chatbot not responding
-- **Solution:** Check browser console for errors, ensure OpenAI API key is configured
-
-**Issue:** No data showing
-- **Solution:** Run the seed script: `npm run seed:demo`
-
-**Issue:** Inventory query denied for distributor
-- **Solution:** This is expected behavior - distributors cannot access inventory
-
----
-
-## 📞 Support
-
-For issues or questions about the demo, please contact the development team.
-
----
-
-**Last Updated:** 2026-03-06
-**Version:** 1.0.0
+**Last Updated:** 2026-09-15
+**Version:** 2.0.0

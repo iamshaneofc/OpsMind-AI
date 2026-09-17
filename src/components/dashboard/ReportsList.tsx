@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 
 const reports = [
   { name: "Executive Summary", date: "June 2026", type: "PDF" },
@@ -14,33 +14,18 @@ const reports = [
   { name: "Delayed Shipments Report", date: "Trailing 7 Days", type: "CSV" },
 ];
 
-export function ReportsList() {
-  const handleDownload = (report: typeof reports[0]) => {
-    let content = "";
-    let mimeType = "";
-    
-    if (report.type === "CSV") {
-      content = "Date,Metric,Value\n2026-06-01,Sample,100\n2026-06-02,Sample,150";
-      mimeType = "text/csv";
-    } else {
-      content = "MOCK PDF CONTENT\n-----------------\nThis is a generated mock PDF content for " + report.name;
-      mimeType = "text/plain"; // Using plain text to mock PDF for demo purposes
-    }
+interface ReportsListProps {
+  filterType?: string;
+}
 
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${report.name.replace(/\s+/g, '_').toLowerCase()}.${report.type.toLowerCase()}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+export function ReportsList({ filterType = "all" }: ReportsListProps) {
+  const filtered = filterType === "all" 
+    ? reports 
+    : reports.filter(r => r.type === filterType);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {reports.map((report) => (
+      {filtered.map((report) => (
         <Card key={report.name} className="glass-card flex flex-col p-5 hover:border-primary/30 group">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -52,17 +37,14 @@ export function ReportsList() {
                 <CardDescription className="text-xs text-muted-foreground mt-0.5">{report.date} · {report.type}</CardDescription>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full h-8 w-8"
-              onClick={() => handleDownload(report)}
-            >
-              <Download size={16} />
-            </Button>
           </div>
         </Card>
       ))}
+      {filtered.length === 0 && (
+        <div className="col-span-2 text-center py-12 text-muted-foreground">
+          No reports found for this filter.
+        </div>
+      )}
     </div>
   );
 }

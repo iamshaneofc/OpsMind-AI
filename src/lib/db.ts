@@ -15,7 +15,7 @@ function buildPool() {
   return new Pool({
     connectionString: cleanUrl,
     ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
-    max: 2,
+    max: 10,
   });
 }
 

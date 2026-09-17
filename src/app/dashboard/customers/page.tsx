@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Mail, Phone, MapPin, CheckCircle, XCircle, TrendingUp, AlertTriangle, Building2, UserCircle, Star, BrainCircuit, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Mail, Phone, MapPin, CheckCircle, XCircle, TrendingUp, AlertTriangle, Building2, UserCircle, Star, BrainCircuit, X, Loader2, Check } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,25 +13,56 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: "", email: "", phone: "", address: "" });
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-
+  const fetchCustomers = () => {
     fetch('/api/dashboard/customers')
       .then(res => res.json())
       .then(data => {
-
-        const hydrated = data.map((c: any, i: number) => ({
-          ...c,
-          ltv: (i * 12500 + 45000) % 350000 + 10000,
-          churnRisk: i % 7 === 0 ? 'High' : i % 3 === 0 ? 'Medium' : 'Low',
-          lastActive: new Date(Date.now() - (i * 86400000 * 2)).toLocaleDateString(),
-          sentiment: i % 4 === 0 ? 'Negative' : 'Positive',
-          tier: i % 5 === 0 ? 'Enterprise' : 'Professional',
-        }));
-        setCustomers(hydrated);
+        setCustomers(data);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchCustomers();
   }, []);
+
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return customers;
+    return customers.filter(c =>
+      (c.name ?? "").toLowerCase().includes(q) ||
+      (c.email ?? "").toLowerCase().includes(q) ||
+      (c.phone ?? "").toLowerCase().includes(q) ||
+      (c.address ?? "").toLowerCase().includes(q) ||
+      (c.location ?? "").toLowerCase().includes(q)
+    );
+  }, [customers, searchQuery]);
+
+  const handleAddCustomer = async () => {
+    if (!newCustomer.name.trim()) return;
+    setCreating(true);
+    try {
+      const res = await fetch('/api/dashboard/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCustomer),
+      });
+      if (res.ok) {
+        setShowAddModal(false);
+        setNewCustomer({ name: "", email: "", phone: "", address: "" });
+        fetchCustomers();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setCreating(false);
+    }
+  };
 
   if (loading) {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading CRM database...</div>;
@@ -49,8 +80,16 @@ export default function CustomersPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Input placeholder="Search accounts..." className="h-9 w-[250px] bg-black/20 border-white/10" />
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9">
+          <Input
+            placeholder="Search accounts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 w-[250px] bg-black/20 border-white/10"
+          />
+          <Button
+            className="bg-primary text-primary-foreground hover:bg-primary/90 h-9"
+            onClick={() => setShowAddModal(true)}
+          >
             Add Account
           </Button>
         </div>
@@ -62,16 +101,16 @@ export default function CustomersPage() {
           <p className="text-2xl font-bold text-white">{customers.length}</p>
         </Card>
         <Card className="glass-card p-5 border-primary/20 bg-primary/5">
-          <p className="text-xs font-medium text-primary uppercase tracking-wider mb-1">Enterprise Tier</p>
-          <p className="text-2xl font-bold text-white">{customers.filter(c => c.tier === 'Enterprise').length}</p>
+          <p className="text-xs font-medium text-primary uppercase tracking-wider mb-1">Active Accounts</p>
+          <p className="text-2xl font-bold text-white">{customers.filter(c => c.status === 'ACTIVE').length}</p>
         </Card>
         <Card className="glass-card p-5">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Avg LTV</p>
-          <p className="text-2xl font-bold text-white">$142.5k</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">With Email</p>
+          <p className="text-2xl font-bold text-white">{customers.filter(c => c.email).length}</p>
         </Card>
-        <Card className="glass-card p-5 border-destructive/20 bg-destructive/5">
-          <p className="text-xs font-medium text-destructive uppercase tracking-wider mb-1">High Churn Risk</p>
-          <p className="text-2xl font-bold text-white">{customers.filter(c => c.churnRisk === 'High').length}</p>
+        <Card className="glass-card p-5">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Filtered</p>
+          <p className="text-2xl font-bold text-white">{filtered.length}</p>
         </Card>
       </div>
 
@@ -83,13 +122,11 @@ export default function CustomersPage() {
                 <th className="px-6 py-4 font-medium text-white">Account Name</th>
                 <th className="px-6 py-4 font-medium text-white">Contact</th>
                 <th className="px-6 py-4 font-medium text-white">Location</th>
-                <th className="px-6 py-4 font-medium text-white">Lifetime Value</th>
-                <th className="px-6 py-4 font-medium text-white">Churn Risk</th>
-                <th className="px-6 py-4 font-medium text-white">Last Active</th>
+                <th className="px-6 py-4 font-medium text-white">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {customers.map((customer) => (
+              {filtered.map((customer) => (
                 <tr
                   key={customer.id}
                   className="hover:bg-white/5 transition-colors cursor-pointer group"
@@ -102,7 +139,6 @@ export default function CustomersPage() {
                       </div>
                       <div>
                         <p className="font-medium text-white group-hover:text-primary transition-colors">{customer.name}</p>
-                        <p className="text-xs text-muted-foreground">{customer.tier}</p>
                       </div>
                     </div>
                   </td>
@@ -110,42 +146,122 @@ export default function CustomersPage() {
                     <div className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2 text-muted-foreground">
                         <Mail className="w-3.5 h-3.5" />
-                        <span className="text-xs">{customer.email}</span>
+                        <span className="text-xs">{customer.email || "—"}</span>
                       </div>
                       <div className="flex items-center space-x-2 text-muted-foreground">
                         <Phone className="w-3.5 h-3.5" />
-                        <span className="text-xs">{customer.phone}</span>
+                        <span className="text-xs">{customer.phone || "—"}</span>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground text-sm">
-                    {customer.location || customer.address || 'N/A'}
+                    {customer.location || customer.address || '—'}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-medium text-emerald-400">
-                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(customer.ltv)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <Badge variant="default" className={`
-                      ${customer.churnRisk === 'High' ? 'border-destructive/30 text-destructive bg-destructive/10' : 
-                        customer.churnRisk === 'Medium' ? 'border-warning/30 text-warning bg-warning/10' : 
-                        'border-success/30 text-success bg-success/10'}
-                    `}>
-                      {customer.churnRisk}
+                    <Badge variant="default" className={customer.status === 'ACTIVE' ? 'border-success/30 text-success bg-success/10' : 'border-white/10 bg-white/5 text-muted-foreground'}>
+                      {customer.status || "ACTIVE"}
                     </Badge>
-                  </td>
-                  <td className="px-6 py-4 text-muted-foreground">
-                    {customer.lastActive}
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                    No customers found matching your search.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
 
-      {/* Client Intel Drawer */}
+      {/* Add Customer Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowAddModal(false)}
+            />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-slate-950 border border-white/10 rounded-xl shadow-2xl w-full max-w-md p-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-white">Add New Customer</h3>
+                  <button onClick={() => setShowAddModal(false)} className="text-muted-foreground hover:text-white">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">Name *</label>
+                    <Input
+                      value={newCustomer.name}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                      placeholder="Company name"
+                      className="bg-black/20 border-white/10 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">Email</label>
+                    <Input
+                      value={newCustomer.email}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                      placeholder="contact@company.com"
+                      className="bg-black/20 border-white/10 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">Phone</label>
+                    <Input
+                      value={newCustomer.phone}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                      placeholder="+1 (555) 000-0000"
+                      className="bg-black/20 border-white/10 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">Address</label>
+                    <Input
+                      value={newCustomer.address}
+                      onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                      placeholder="123 Main St, City, State"
+                      className="bg-black/20 border-white/10 text-white"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    className="flex-1 bg-transparent border-white/10 hover:bg-white/5"
+                    onClick={() => setShowAddModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                    onClick={handleAddCustomer}
+                    disabled={creating || !newCustomer.name.trim()}
+                  >
+                    {creating ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Check size={16} className="mr-2" />}
+                    {creating ? "Creating..." : "Create Account"}
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Customer Detail Drawer */}
       <AnimatePresence>
         {selectedCustomer && (
           <div className="fixed inset-0 z-50 overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
@@ -177,11 +293,8 @@ export default function CustomersPage() {
                           <h2 className="text-xl font-bold text-white">{selectedCustomer.name}</h2>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="default" className="border-white/10 bg-white/5 text-xs font-normal">
-                              {selectedCustomer.tier}
+                              {selectedCustomer.status || "ACTIVE"}
                             </Badge>
-                            <span className="flex items-center gap-1 text-xs text-success">
-                              <CheckCircle size={12} /> Active
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -197,43 +310,6 @@ export default function CustomersPage() {
                   </div>
 
                   <div className="relative flex-1 px-6 py-6 sm:px-8 space-y-8">
-                    {/* AI Intel Card */}
-                    <div className="relative rounded-xl border border-primary/20 bg-gradient-to-b from-primary/10 to-transparent p-5 overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 opacity-10">
-                        <BrainCircuit size={100} />
-                      </div>
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-3">
-                          <BrainCircuit size={16} className="text-primary" />
-                          <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">AI Copilot Intel</h3>
-                        </div>
-                        <p className="text-sm text-white/90 leading-relaxed">
-                          {selectedCustomer.churnRisk === 'High' 
-                            ? "Engagement has dropped by 45% in the last 30 days. Recommend immediate outreach offering Q4 promotional pricing to retain account."
-                            : "Account is healthy. Predict 85% probability of successful upsell to the new Analytics Add-on based on usage patterns."}
-                        </p>
-                        <div className="mt-4 flex gap-2">
-                          <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs h-8">Draft Email</Button>
-                          <Button size="sm" variant="outline" className="bg-transparent border-primary/30 text-primary hover:bg-primary/10 text-xs h-8">View Usage Logs</Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><TrendingUp size={14} /> Lifetime Value</p>
-                        <p className="text-lg font-medium text-emerald-400">
-                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(selectedCustomer.ltv)}
-                        </p>
-                      </div>
-                      <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><AlertTriangle size={14} /> Churn Risk</p>
-                        <p className={`text-lg font-medium ${selectedCustomer.churnRisk === 'High' ? 'text-destructive' : 'text-success'}`}>
-                          {selectedCustomer.churnRisk}
-                        </p>
-                      </div>
-                    </div>
-
                     <div>
                       <h3 className="text-sm font-medium text-white mb-3 uppercase tracking-wider flex items-center gap-2">
                         <UserCircle size={16} className="text-muted-foreground"/> Contact Information
@@ -241,23 +317,40 @@ export default function CustomersPage() {
                       <div className="space-y-3 p-4 rounded-xl bg-black/20 border border-white/5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 flex justify-center text-muted-foreground"><Mail size={16} /></div>
-                          <div className="flex-1 text-sm text-white">{selectedCustomer.email}</div>
+                          <div className="flex-1 text-sm text-white">{selectedCustomer.email || "—"}</div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="w-8 flex justify-center text-muted-foreground"><Phone size={16} /></div>
-                          <div className="flex-1 text-sm text-white">{selectedCustomer.phone}</div>
+                          <div className="flex-1 text-sm text-white">{selectedCustomer.phone || "—"}</div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="w-8 flex justify-center text-muted-foreground"><MapPin size={16} /></div>
-                          <div className="flex-1 text-sm text-white">{selectedCustomer.address}</div>
+                          <div className="flex-1 text-sm text-white">{selectedCustomer.address || "—"}</div>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="p-6 border-t border-white/5 bg-black/20">
-                    <Button className="w-full bg-white text-black hover:bg-white/90">
-                      Open Full Profile
+                  <div className="p-6 border-t border-white/5 bg-black/20 flex gap-3">
+                    <Button
+                      className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={() => {
+                        const email = selectedCustomer.email;
+                        if (email) {
+                          window.open(`mailto:${email}?subject=Follow-up regarding your account`, "_blank");
+                        }
+                      }}
+                      disabled={!selectedCustomer.email}
+                    >
+                      <Mail size={16} className="mr-2" />
+                      Draft Email
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 bg-transparent border-white/10 hover:bg-white/5"
+                      onClick={() => setSelectedCustomer(null)}
+                    >
+                      Close
                     </Button>
                   </div>
                 </div>

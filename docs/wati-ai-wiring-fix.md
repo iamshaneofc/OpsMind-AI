@@ -189,11 +189,11 @@ WhatsApp User
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────┐
-│               SQL Server ERP                       │
-│  • sales_order_header                             │
-│  • ACCOUNT_MASTER                                 │
-│  • Location                                       │
-│  • Product_Master                                │
+│               Supabase/Prisma                       │
+│  • orders                                           │
+│  • customers                                        │
+│  • warehouses                                       │
+│  • products                                         │
 └──────────────────────────┬──────────────────────────┘
                            │
                            ▼
@@ -221,9 +221,9 @@ WhatsApp User
 | Service | Location | Purpose |
 |---------|----------|---------|
 | `getOpenAIClient()` | `src/ai/openai.ts` | OpenAI API client |
-| `aiTools` | `src/ai/tools.ts` | ERP tool definitions |
-| `executeTool()` | `src/ai/tools.ts` | Execute ERP queries |
-| `loadCompanyErpAccounts()` | `src/services/auth.ts` | ERP account mapping |
+| `aiTools` | `src/ai/tools.ts` | Operations tool definitions |
+| `executeTool()` | `src/ai/tools.ts` | Execute operations queries |
+| `getUserProfile()` | `src/services/auth.ts` | User profile lookup |
 | `mapRoleIdToAppRole()` | `src/services/auth.ts` | Role mapping |
 | `createSupabaseServerClient()` | `src/supabase/server.ts` | Supabase client |
 
@@ -240,7 +240,7 @@ WhatsApp User
 | Session → AI Adapter | ✓ **FIXED** - Now uses wati-chat-adapter.ts |
 | AI Adapter → OpenAI | ✓ Reuses getOpenAIClient() |
 | OpenAI → Tools | ✓ Reuses aiTools + executeTool() |
-| Tools → ERP | ✓ Reuses SQL Server queries |
+| Tools → Data | ✓ Reuses Supabase/Prisma queries |
 | AI Response → WhatsApp | ✓ Via Wati API |
 
 ### ✓ No Duplication

@@ -19,6 +19,7 @@ interface InventoryRow {
   products: {
     name: string;
     sku: string;
+    cost?: number | null;
   } | null;
 }
 
@@ -62,7 +63,11 @@ export function InventoryTable({ rows }: InventoryTableProps) {
   }, [rows, query, onlyLowStock, selectedWarehouse, presetLowStock]);
 
   const totalValue = useMemo(() => {
-    return filtered.reduce((acc, row) => acc + (row.available_qty * 45), 0);
+    return filtered.reduce((acc, row) => {
+      const product = Array.isArray(row.products) ? row.products[0] : row.products;
+      const unitCost = product?.cost ?? 0;
+      return acc + (row.available_qty * unitCost);
+    }, 0);
   }, [filtered]);
 
   const lowStockCount = useMemo(() => {
@@ -95,8 +100,8 @@ export function InventoryTable({ rows }: InventoryTableProps) {
           <p className="text-3xl font-bold text-white mb-2">
             {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalValue)}
           </p>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <span className="text-success">↑ 4.2%</span> from last month
+          <p className="text-xs text-muted-foreground">
+            Based on current stock levels
           </p>
         </Card>
 
@@ -224,13 +229,12 @@ export function InventoryTable({ rows }: InventoryTableProps) {
             </ResponsiveContainer>
           </div>
           <div className="mt-6 pt-4 border-t border-white/5">
-            <h4 className="text-sm font-medium text-white mb-2">Automated Replenishment</h4>
+            <h4 className="text-sm font-medium text-white mb-2">Low Stock Items</h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              AI suggests automatically reordering 3 critical SKUs before the weekend surge. 
+              {lowStockCount > 0 
+                ? `${lowStockCount} SKU(s) below reorder level require attention.`
+                : "All stock levels are healthy."}
             </p>
-            <Button className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground">
-              Review Purchase Orders
-            </Button>
           </div>
         </Card>
       </div>

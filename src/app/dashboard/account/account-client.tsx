@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Key, Shield, Building, Users, UserCheck, Activity, Settings } from "lucide-react";
+import { User, Key, Shield, Building, Users, UserCheck, Activity, Settings, Loader2, Check } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +18,37 @@ interface AccountClientProps {
 
 export function AccountClient({ initialName, email, role }: AccountClientProps) {
   const [activeTab, setActiveTab] = useState("profile");
-  
   const fullName = initialName || email.split('@')[0];
   const nameParts = fullName.split(' ');
-  const firstName = nameParts[0] || '';
-  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+  const firstNameDefault = nameParts[0] || '';
+  const lastNameDefault = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+  const [firstName, setFirstName] = useState(firstNameDefault);
+  const [lastName, setLastName] = useState(lastNameDefault);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   const initials = (firstName.charAt(0) + (lastName.charAt(0) || '')).toUpperCase() || 'U';
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    try {
+      const res = await fetch('/api/account/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
@@ -81,18 +106,25 @@ export function AccountClient({ initialName, email, role }: AccountClientProps) 
                     {initials}
                   </div>
                   <div>
-                    <Button variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">Change Avatar</Button>
-                    <p className="text-xs text-muted-foreground mt-2">JPG, GIF or PNG. 1MB max.</p>
+                    <p className="text-sm text-muted-foreground">Avatar uses your initials</p>
                   </div>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-white">First Name</label>
-                    <Input defaultValue={firstName} className="bg-black/20 border-white/10 text-white" />
+                    <Input
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="bg-black/20 border-white/10 text-white"
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-white">Last Name</label>
-                    <Input defaultValue={lastName} className="bg-black/20 border-white/10 text-white" />
+                    <Input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="bg-black/20 border-white/10 text-white"
+                    />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-medium text-white">Email Address</label>
@@ -100,7 +132,18 @@ export function AccountClient({ initialName, email, role }: AccountClientProps) 
                   </div>
                 </div>
                 <div className="mt-8 flex justify-end">
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">Save Changes</Button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={saving || saved}
+                    className={`bg-primary hover:bg-primary/90 text-primary-foreground ${saved ? 'bg-success hover:bg-success' : ''}`}
+                  >
+                    {saving ? (
+                      <Loader2 size={16} className="mr-2 animate-spin" />
+                    ) : saved ? (
+                      <Check size={16} className="mr-2" />
+                    ) : null}
+                    {saving ? "Saving..." : saved ? "Saved!" : "Save Changes"}
+                  </Button>
                 </div>
               </Card>
             </motion.div>

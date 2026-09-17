@@ -11,6 +11,7 @@ interface OrderRow {
   customer_name: string | null;
   expected_delivery_date: string | null;
   created_at: string;
+  order_value?: number | null;
 }
 
 interface OrdersRealtimeTableProps {

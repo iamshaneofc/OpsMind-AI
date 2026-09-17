@@ -1,72 +1,80 @@
-# Environment Variables & Vercel Deployment
+# Environment Variables & Deployment
 
 ## Local first-time setup
 
 1. **Dependencies:** `npm install`
-2. **Env file:** copy `.env.example` to `.env` and paste your Supabase + OpenAI keys (same as production or a dev project).
+2. **Env file:** copy `.env.example` to `.env` and paste your Supabase + OpenAI keys.
 3. **Check:** `npm run local:check` — confirms `.env` and required keys.
-4. **Run app:** `npm run dev` → open [http://localhost:3000](http://localhost:3000).
+4. **Run app:** `npm run dev` → open [http://localhost:3001](http://localhost:3001).
 5. **Database migrations:** when Supabase is reachable, run new SQL from `supabase/migrations/` in **Dashboard → SQL Editor** (no CLI required).
 
 ---
 
-## Required for all environments
+## Required environment variables
 
-Set these in **Vercel** (Project → Settings → Environment Variables) and in local `.env`:
+Set these in your deployment platform and in local `.env`:
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) |
-| `OPENAI_API_KEY` | OpenAI API key (starts with `sk-`) |
+| Variable | Description | Used By |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Client + Server |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon/public key | Client + Server |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-only) | Server (admin operations) |
+| `DATABASE_URL` | PostgreSQL connection string (with `?pgbouncer=true`) | Prisma ORM |
+| `DIRECT_URL` | PostgreSQL direct connection string (for migrations) | Prisma migrations |
+| `OPENAI_API_KEY` | OpenAI API key (starts with `sk-`) | AI chat features |
+| `OPENAI_MODEL` | OpenAI model name (default: `gpt-4o`) | AI chat features |
+| `NODE_ENV` | `production` for deployed environments | Next.js |
+| `PORT` | Server port (default: `3000`) | Next.js |
 
-## Optional: SQL Server (operations data)
+## Optional environment variables
 
-Only if you use a remote SQL Server for orders/inventory/invoices:
-
-| Variable | Description |
-|----------|-------------|
-| `USE_SQL_SERVER_DATA` | `true` to enable SQL Server data source |
-| `SQL_SERVER_HOST` | SQL Server host/IP |
-| `SQL_SERVER_PORT` | Default `1433` |
-| `SQL_SERVER_USER` | DB user |
-| `SQL_SERVER_PASSWORD` | DB password |
-| `SQL_SERVER_DATABASE` | Database name |
-| `SQL_SERVER_ENCRYPT` | `true` for TLS |
-| `SQL_SERVER_TRUST_SERVER_CERTIFICATE` | `true` if using self-signed cert |
-
-**Vercel note:** SQL Server must be reachable from the public internet (e.g. E2E Cloud VM or tunnel). A machine on your local network is not reachable from Vercel. For Vercel, either set `USE_SQL_SERVER_DATA=false` and use Supabase-only data, or host SQL Server at a public IP that allows inbound connections from Vercel.
-
-### Distributor orders (SQL Server): map app company → ERP `account_id`
-
-Supabase `users.company_id` is **not** the same as SQL Server `dbo.sales_order_header.account_id`.  
-Apply migration `20260319100000_add_erp_account_mapping_to_companies.sql`, then set on `public.companies`:
-
-- **`erp_account_id`** — single ERP customer account id (matches `account_id` on sales orders), or  
-- **`erp_account_ids`** — PostgreSQL `integer[]` of multiple account ids (when set, used instead of `erp_account_id`).
-
-Example (adjust ids from your ERP):
-
-```sql
-UPDATE public.companies SET erp_account_id = 1426 WHERE company_id = 8;
-UPDATE public.companies SET erp_account_id = 1428 WHERE company_id = 9;
-```
-
-Until this is set, distributor logins will see **no** ERP orders (by design).
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SEED_PASSWORD` | Password for demo seed users | `changeme` |
+| `NEXT_PUBLIC_DEMO_EMAIL_MANAGER` | Manager demo login email (set to show button) | *(hidden)* |
+| `NEXT_PUBLIC_DEMO_EMAIL_ANALYST` | Analyst demo login email (set to show button) | *(hidden)* |
+| `NEXT_PUBLIC_DEMO_PASSWORD` | Demo login password | *(empty)* |
+| `SKIP_ERP_MANUAL_ALLOCATION` | Skip Supabase manual allocation reads | `false` |
+| `SKIP_ERP_STATUS_JOURNAL` | Skip status snapshot writes | `false` |
+| `SKIP_ERP_PREDICTIONS_CACHE` | Skip ETA/prediction cache writes | `false` |
+| `FACTORY_STALE_ESCALATION_DAYS` | Days before factory escalation | `14` |
+| `APP_BASE_URL` | App base URL for testing | `http://localhost:3000` |
+| `LOCAL_DATABASE_URL` | Local PostgreSQL URL (for dev migration scripts) | — |
 
 ---
 
-## Deploy to Vercel
+## Deployment
 
-1. **Push your code** to GitHub (ensure `.env` is in `.gitignore` — do not commit secrets).
+### Docker (recommended)
 
-2. **Import in Vercel:** [vercel.com/new](https://vercel.com/new) → Import your repo → **Next.js** framework (auto-detected).
+```bash
+# Build and start
+docker compose up -d --build
 
-3. **Add environment variables** (Settings → Environment Variables). Add each variable from the tables above; use the same values as in your local `.env`. Apply to **Production**, **Preview**, and **Development** as needed.
+# Verify
+docker compose ps
+curl http://localhost:3000
+```
 
-4. **Deploy:** Deploy from the main branch or trigger a new deployment. Build command: `npm run build` (default).
+### Manual
 
-5. **Supabase redirect URL:** In Supabase Dashboard → Authentication → URL Configuration, add your Vercel URL to **Redirect URLs** (e.g. `https://your-app.vercel.app/**`).
+```bash
+npm install
+npx prisma generate
+npm run build
+npm start
+```
 
-Done. Your app will be live at `https://your-app.vercel.app`.
+### Process manager (PM2)
+
+```bash
+npm install -g pm2
+pm2 start npm --name opsmind -- start
+pm2 save
+```
+
+---
+
+## Supabase redirect URL
+
+In Supabase Dashboard → Authentication → URL Configuration, add your deployment URL to **Redirect URLs** (e.g. `https://your-domain.com/**`).
