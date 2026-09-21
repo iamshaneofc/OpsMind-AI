@@ -92,7 +92,7 @@ export function LoginForm() {
               setEmailPlaceholder("name@opsmind.ai"); 
             }}
           >
-            Admin
+            Admin Demo
           </Button>
           <Button 
             variant="outline" 
@@ -105,7 +105,7 @@ export function LoginForm() {
               document.getElementById("email")?.focus();
             }}
           >
-            Admin Demo
+            Admin
           </Button>
           {process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER && (
             <Button 
