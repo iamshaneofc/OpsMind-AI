@@ -1,0 +1,40 @@
+{
+  "serviceName": "opsmind-ai-service",
+  "cluster": "opsmind-ai-cluster",
+  "taskDefinition": "opsmind-ai",
+  "desiredCount": 2,
+  "launchType": "FARGATE",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        "subnet-xxxxxxxx",
+        "subnet-yyyyyyyy"
+      ],
+      "securityGroups": [
+        "sg-zzzzzzzz"
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  },
+  "loadBalancers": [
+    {
+      "targetGroupArn": "arn:aws:elasticloadbalancing:${AWS_REGION}:${AWS_ACCOUNT_ID}:targetgroup/opsmind-ai-tg/xxxxxxxxx",
+      "containerName": "opsmind-app",
+      "containerPort": 3000
+    }
+  ],
+  "deploymentConfiguration": {
+    "maximumPercent": 200,
+    "minimumHealthyPercent": 100,
+    "deploymentCircuitBreaker": {
+      "enable": true,
+      "rollback": true
+    }
+  },
+  "healthCheckGracePeriodSeconds": 60,
+  "enableExecuteCommand": true,
+  "tags": [
+    { "key": "Environment", "value": "production" },
+    { "key": "Project", "value": "opsmind-ai" }
+  ]
+}

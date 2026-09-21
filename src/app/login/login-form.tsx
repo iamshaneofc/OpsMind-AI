@@ -83,6 +83,18 @@ export function LoginForm() {
         </div>
         <div className="grid grid-cols-3 gap-3">
           <Button 
+            variant="default" 
+            size="sm"
+            className="border-white/10 bg-primary/20 hover:bg-primary/30 text-xs py-1 font-medium"
+            onClick={() => { 
+              setEmail("admindemo@opsmind.com"); 
+              setPassword("admindemo123");
+              setEmailPlaceholder("name@opsmind.ai"); 
+            }}
+          >
+            Admin
+          </Button>
+          <Button 
             variant="outline" 
             size="sm"
             className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
@@ -93,7 +105,7 @@ export function LoginForm() {
               document.getElementById("email")?.focus();
             }}
           >
-            Admin
+            Admin Demo
           </Button>
           {process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER && (
             <Button 

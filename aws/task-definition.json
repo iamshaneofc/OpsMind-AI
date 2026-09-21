@@ -1,0 +1,51 @@
+{
+  "family": "opsmind-ai",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "opsmind-app",
+      "image": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/opsmind-ai:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "PORT", "value": "3000" },
+        { "name": "HOSTNAME", "value": "0.0.0.0" }
+      ],
+      "secrets": [
+        { "name": "NEXT_PUBLIC_SUPABASE_URL", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/supabase-url" },
+        { "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/supabase-anon-key" },
+        { "name": "SUPABASE_SERVICE_ROLE_KEY", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/supabase-service-role-key" },
+        { "name": "OPENAI_API_KEY", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/openai-api-key" },
+        { "name": "OPENAI_MODEL", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/openai-model" },
+        { "name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/database-url" },
+        { "name": "DIRECT_URL", "valueFrom": "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:opsmind/direct-url" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/opsmind-ai",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget --spider -q http://localhost:3000/api/health || exit 1"],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 15
+      }
+    }
+  ]
+}
