@@ -1,19 +1,13 @@
-# ── Stage 1: Install production dependencies ───────────────────────
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
-
-# ── Stage 2: Build (needs devDependencies for prisma, tailwind, etc.) ──
+# ── Stage 1: Build ────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts && npm cache clean --force
 COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-# ── Stage 3: Production runtime ────────────────────────────────────
+# ── Stage 2: Production runtime ────────────────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -33,12 +27,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 # Copy static assets into standalone .next/static
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma engine and production pg driver
-COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=deps /app/node_modules/pg ./node_modules/pg
-COPY --from=deps /app/node_modules/pg-hstore ./node_modules/pg-hstore
-COPY --from=deps /app/node_modules/pg-query-stream ./node_modules/pg-query-stream
+# Generated Prisma client + query engine.
+# Next's standalone tracer does not follow the @prisma/* import chain, so the
+# whole @prisma scope is copied. postgres-array is a dependency of
+# @prisma/adapter-pg that the tracer also omits.
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/postgres-array ./node_modules/postgres-array
 
 # Remove .env bundled by next build — secrets come from env_file at runtime
 RUN rm -f .env .env.*

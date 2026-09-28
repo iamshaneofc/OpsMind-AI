@@ -27,6 +27,24 @@ const globalForPrisma = globalThis as unknown as {
 const pool = globalForPrisma.pool ?? buildPool();
 const adapter = new PrismaPg(pool);
 
+// Open pooled connections ahead of the first request. The Supabase pooler is in
+// ap-northeast-1 while this app runs in us-east-1, so the first handshake costs
+// ~2s — it must not land on a real user's login.
+export async function warmPool(count = 2): Promise<void> {
+  await Promise.all(
+    Array.from({ length: count }, () =>
+      pool
+        .connect()
+        .then((client) => client.release())
+        .catch(() => {}),
+    ),
+  );
+}
+
+// Also warm lazily at module load, so any entry point that pulls in this module
+// benefits even if instrumentation.ts did not run.
+void warmPool();
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({

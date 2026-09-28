@@ -6,6 +6,6 @@ export interface UserProfile {
   full_name: string | null;
   role: AppRole;
   role_id: number;
-  company_id: number | null;
-  warehouse_id: number | null;
+  company_id: string | null;
+  warehouse_id: string | null;
 }

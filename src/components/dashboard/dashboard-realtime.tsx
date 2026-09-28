@@ -11,8 +11,8 @@ import {
 
 interface DashboardRealtimeProps {
   role: AppRole;
-  companyId: number | null;
-  warehouseId: number | null;
+  companyId: string | null;
+  warehouseId: string | null;
   email?: string;
   initialMetrics: {
     totalOrders: number;

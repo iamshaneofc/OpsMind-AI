@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/supabase/client";
@@ -17,6 +17,40 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [emailPlaceholder, setEmailPlaceholder] = useState("name@opsmind.ai");
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoAvailable, setDemoAvailable] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/demo-login", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(() => {
+        if (active) setDemoAvailable(true);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function fillDemoAdmin() {
+    setDemoLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/demo-login", { cache: "no-store" });
+      if (!res.ok) {
+        setError("Demo login is not enabled on this deployment.");
+        return;
+      }
+      const data = await res.json();
+      setEmail(data.email);
+      setPassword(data.password);
+    } catch {
+      setError("Could not load demo credentials.");
+    } finally {
+      setDemoLoading(false);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,37 +116,16 @@ export function LoginForm() {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
-            onClick={() => { 
-              setEmail(""); 
-              setPassword(""); 
-              setEmailPlaceholder("Enter your email..."); 
-              document.getElementById("email")?.focus();
-            }}
-          >
-            Admin
-          </Button>
-          {process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER && (
-            <Button 
-              variant="outline" 
+          {demoAvailable && (
+            <Button
+              variant="outline"
               size="sm"
               className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
-              onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER!); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ""); }}
+              onClick={fillDemoAdmin}
+              disabled={demoLoading}
             >
-              Manager
-            </Button>
-          )}
-          {process.env.NEXT_PUBLIC_DEMO_EMAIL_ANALYST && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
-              onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_EMAIL_ANALYST!); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ""); }}
-            >
-              Analyst
+              {demoLoading ? <Loader2 size={12} className="mr-1 animate-spin" /> : null}
+              Admin
             </Button>
           )}
         </div>

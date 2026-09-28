@@ -16,8 +16,8 @@ interface OrderRow {
 
 interface OrdersRealtimeTableProps {
   role: AppRole;
-  companyId: number | null;
-  warehouseId: number | null;
+  companyId: string | null;
+  warehouseId: string | null;
   initialRows: OrderRow[];
 }
 

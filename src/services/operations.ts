@@ -134,9 +134,16 @@ export async function getOrdersForRole(
   const cacheKey = `orders:${profile.role}:${profile.user_id}:${shouldBalance}:${sqlLimit}`;
   return getCached(cacheKey, 10_000, async () => {
     let whereClause: any = {};
-    if (profile.role === "manager" && profile.company_id) {
-      // For V1 demo purposes, we can link manager to specific customers if needed, otherwise fetch all
-    } else if (profile.role === "analyst" && profile.warehouse_id) {
+    if (profile.role === "manager") {
+      if (profile.warehouse_id) {
+        whereClause.warehouseId = String(profile.warehouse_id);
+      } else {
+        return [];
+      }
+    } else if (profile.role === "analyst") {
+      if (!profile.warehouse_id) {
+        return [];
+      }
       whereClause.warehouseId = String(profile.warehouse_id);
     }
 
@@ -164,7 +171,10 @@ export async function getInventoryForRole(profile: UserProfile) {
   const cacheKey = `inventory:${profile.role}:${profile.user_id}`;
   return getCached(cacheKey, 15_000, async () => {
     let whereClause: any = {};
-    if (profile.role === "analyst" && profile.warehouse_id) {
+    if (profile.role === "manager" || profile.role === "analyst") {
+      if (!profile.warehouse_id) {
+        return [];
+      }
       whereClause.warehouseId = String(profile.warehouse_id);
     }
 

@@ -92,7 +92,7 @@ export const aiTools = {
   }
 };
 
-export async function executeAiTool(toolName: string, args: Record<string, unknown>, profile: UserProfile) {
+async function runTool(toolName: string, args: Record<string, unknown>, profile: UserProfile) {
   try {
     switch (toolName) {
       // Orders
@@ -257,6 +257,77 @@ export async function executeAiTool(toolName: string, args: Record<string, unkno
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "An error occurred while executing the tool.";
+    console.error(`Error executing tool ${toolName}:`, error);
+    return { error: message };
+  }
+}
+
+const SCOPABLE_TOOLS = new Set([
+  "getRecentOrders",
+  "getPendingOrders",
+  "getDelayedOrders",
+  "getOrderDetails",
+  "getLowStock",
+  "getWarehouseInventory",
+  "getCustomerHistory",
+  "getOverdueInvoices",
+  "getOutstandingInvoices",
+]);
+
+const ADMIN_ONLY_MESSAGE = "This analysis is restricted to administrators.";
+const NO_WAREHOUSE_MESSAGE = "Your account is not assigned to a warehouse. Contact an administrator.";
+
+function recordWarehouseId(item: any): string | null {
+  return (
+    item?.warehouseId ??
+    item?.warehouse?.id ??
+    item?.order?.warehouseId ??
+    null
+  );
+}
+
+function applyWarehouseScope(result: any, warehouseId: string) {
+  if (Array.isArray(result)) {
+    return result.filter((item) => recordWarehouseId(item) === warehouseId);
+  }
+  if (result && typeof result === "object") {
+    const rec = recordWarehouseId(result);
+    if (rec === null) return { error: ADMIN_ONLY_MESSAGE };
+    return rec === warehouseId ? result : null;
+  }
+  return { error: ADMIN_ONLY_MESSAGE };
+}
+
+export async function executeAiTool(
+  toolName: string,
+  args: Record<string, unknown>,
+  profile: UserProfile,
+) {
+  if (profile.role === "admin") {
+    return runTool(toolName, args, profile);
+  }
+
+  if (!SCOPABLE_TOOLS.has(toolName)) {
+    return { error: ADMIN_ONLY_MESSAGE };
+  }
+
+  const warehouseId = profile.warehouse_id ? String(profile.warehouse_id) : "";
+  if (!warehouseId) {
+    return { error: NO_WAREHOUSE_MESSAGE };
+  }
+
+  const scopedArgs =
+    toolName === "getWarehouseInventory" ? { ...args, warehouseId } : args;
+
+  try {
+    const result = await runTool(toolName, scopedArgs, profile);
+    if (result && typeof result === "object" && "error" in (result as object)) {
+      return result;
+    }
+    return applyWarehouseScope(result, warehouseId);
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "An error occurred while executing the tool.";
     console.error(`Error executing tool ${toolName}:`, error);
     return { error: message };
   }

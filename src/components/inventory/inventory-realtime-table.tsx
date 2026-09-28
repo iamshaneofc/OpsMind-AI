@@ -17,7 +17,7 @@ interface InventoryRow {
 
 interface InventoryRealtimeTableProps {
   role: AppRole;
-  warehouseId: number | null;
+  warehouseId: string | null;
   initialRows: InventoryRow[];
 }
 
