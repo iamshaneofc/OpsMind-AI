@@ -3,11 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, CheckCheck, Loader2, Send, RotateCcw } from "lucide-react";
 
+export type DemoItem = { name: string; sku: string; qty: number };
+
 export type DemoContext = {
   orderNumber: string;
   customerName: string;
   amount: string;
   deliveryDate: string;
+  warehouse: string;
+  items: DemoItem[];
 };
 
 type Tick = "sent" | "delivered" | "read";
@@ -29,36 +33,67 @@ type Template = {
   reply: string;
 };
 
+/** "2× Widget A, 1× Widget B" — falls back when the order has no line items. */
+function itemList(c: DemoContext, max = 3): string {
+  const items = c.items.slice(0, max).map((i) => `${i.qty}× ${i.name}`);
+  if (!items.length) return "your items";
+  const rest = c.items.length - max;
+  return rest > 0 ? `${items.join(", ")} +${rest} more` : items.join(", ");
+}
+
+function itemLines(c: DemoContext, max = 4): string {
+  const items = c.items.slice(0, max).map((i) => `  • ${i.qty}× ${i.name} (${i.sku})`);
+  if (!items.length) return "  • your items";
+  return items.join("\n");
+}
+
 const TEMPLATES: Template[] = [
   {
     id: "confirmed",
     label: "Order confirmed",
     hint: "Sent right after checkout",
     build: (c) =>
-      `Hi ${c.customerName.split(" ")[0]}, your order *${c.orderNumber}* is confirmed — total ${c.amount}. We'll share the dispatch update shortly.`,
+      `Hi ${c.customerName.split(" ")[0]}, your order *${c.orderNumber}* is confirmed — ${itemList(c, 2)} for ${c.amount}. Dispatch update shortly.`,
     reply: "Great, thanks! When will it ship?",
+  },
+  {
+    id: "packed",
+    label: "Packed & itemised",
+    hint: "Shows SKUs per line",
+    build: (c) =>
+      `*${c.orderNumber}* is packed and ready:\n${itemLines(c)}\nTotal ${c.amount} — tracking follows once it leaves ${c.warehouse}.`,
+    reply: "Perfect, please send tracking when it's out.",
   },
   {
     id: "dispatch",
     label: "Out for delivery",
     hint: "Triggered on SHIPPED status",
     build: (c) =>
-      `Update on *${c.orderNumber}*: your shipment is out for delivery and is expected on ${c.deliveryDate}. Track it in the OpsMind app.`,
+      `Update on *${c.orderNumber}*: ${itemList(c, 2)} is out for delivery, expected ${c.deliveryDate}. Reply here if you need a different slot.`,
     reply: "Perfect, I'll keep someone at the gate.",
   },
   {
+    id: "pickup",
+    label: "Ready for pickup",
+    hint: "Warehouse collection notice",
+    build: (c) =>
+      `Your items are waiting at *${c.warehouse}* — ${itemList(c, 3)}. Collect ${c.orderNumber} any time before ${c.deliveryDate}.`,
+    reply: "I'll send someone over this afternoon.",
+  },
+  {
     id: "delay",
-    label: "Delay alert",
+    label: "Line-item delay",
     hint: "Triggered on DELAYED status",
     build: (c) =>
-      `Heads-up ${c.customerName.split(" ")[0]} — *${c.orderNumber}* is running behind schedule. New ETA ${c.deliveryDate}. Apologies for the wait.`,
+      `Heads-up ${c.customerName.split(" ")[0]} — one line on *${c.orderNumber}* (${itemList(c, 1)}) is running behind. New ETA ${c.deliveryDate}. Apologies for the wait.`,
     reply: "Understood. Please keep me posted.",
   },
   {
     id: "payment",
     label: "Payment reminder",
     hint: "Triggered on UNPAID invoice",
-    build: (c) => `Reminder: invoice for *${c.orderNumber}* (${c.amount}) is still open. You can settle it directly from this chat.`,
+    build: (c) =>
+      `Reminder: invoice for *${c.orderNumber}* (${c.amount}, ${itemList(c, 1)}) is still open. Settle it directly from this chat.`,
     reply: "I'll take care of it today.",
   },
 ];
@@ -249,13 +284,15 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
         <div className="space-y-1.5">
           <h4 className="text-base font-semibold text-white">Message templates</h4>
           <p className="text-sm text-muted-foreground">
-            Every template below is populated with a real order from your workspace
-            (<span className="font-mono text-white/80">{context.orderNumber}</span>). Select one to
-            run the conversation.
+            Every template is populated with a real order and its line items from your workspace —
+            <span className="mx-1 font-mono text-white/80">{context.orderNumber}</span> with{" "}
+            {context.items.length} product line{context.items.length === 1 ? "" : "s"} from{" "}
+            <span className="text-white/80">{context.warehouse}</span>. Select one to run the
+            conversation.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {TEMPLATES.map((t) => {
             const isActive = t.id === active;
             return (
@@ -271,15 +308,31 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-white">{t.label}</span>
+                  <span className="text-[13px] font-semibold leading-tight text-white">{t.label}</span>
                   {sending && isActive ? (
-                    <Loader2 size={14} className="animate-spin text-[#25D366]" />
+                    <Loader2 size={13} className="shrink-0 animate-spin text-[#25D366]" />
                   ) : null}
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">{t.hint}</p>
-                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-white/60">
+                <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{t.hint}</p>
+                <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-[11px] leading-[1.5] text-white/55">
                   {t.build(context)}
                 </p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {context.items.slice(0, 3).map((i) => (
+                    <span
+                      key={i.sku}
+                      className="max-w-full truncate rounded border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] font-medium text-white/50"
+                      title={`${i.name} · ${i.sku}`}
+                    >
+                      {i.qty}× {i.name}
+                    </span>
+                  ))}
+                  {context.items.length > 3 ? (
+                    <span className="rounded border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] text-white/40">
+                      +{context.items.length - 3}
+                    </span>
+                  ) : null}
+                </div>
               </button>
             );
           })}
@@ -304,6 +357,15 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
           <span className="text-xs text-muted-foreground">
             Nothing is sent to a real phone number.
           </span>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+          <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+            Composed message · {template.label}
+          </p>
+          <p className="whitespace-pre-wrap break-words font-mono text-[11px] leading-[1.6] text-white/70">
+            {template.build(context)}
+          </p>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">

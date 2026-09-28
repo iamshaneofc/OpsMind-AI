@@ -120,22 +120,50 @@ export default async function WhatsAppPage() {
   const readPct = 83;
   const replyPct = 31;
 
-  const demoContext = (() => {
-    const inScope = orders.find((o) => isOrdersInProgressStatus(o.status)) ?? orders[0];
-    const delivery = inScope?.expected_delivery_date
-      ? new Date(inScope.expected_delivery_date).toLocaleDateString("en-GB", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })
-      : "TBD";
-    return {
-      orderNumber: inScope?.order_number ?? "ORD-0000",
-      customerName: inScope?.customer_name ?? "Valued customer",
-      amount: `$${Number(inScope?.order_value ?? 0).toLocaleString("en-US")}`,
-      deliveryDate: delivery,
-    };
-  })();
+  // Anchor the demo to one real, in-scope order — line items and all — so the
+  // product-aware templates quote actual SKUs instead of placeholder text.
+  const inScope = orders.find((o) => isOrdersInProgressStatus(o.status)) ?? orders[0];
+
+  let items: Array<{ name: string; sku: string; qty: number }> = [];
+  let warehouse = "your warehouse";
+  if (inScope) {
+    try {
+      const row = await prisma.order.findUnique({
+        where: { id: inScope.id },
+        select: {
+          warehouse: { select: { name: true } },
+          items: {
+            select: { quantity: true, product: { select: { name: true, sku: true } } },
+            orderBy: { quantity: "desc" },
+            take: 6,
+          },
+        },
+      });
+      warehouse = row?.warehouse?.name || warehouse;
+      items = (row?.items ?? [])
+        .filter((i) => i.product)
+        .map((i) => ({ name: i.product.name, sku: i.product.sku, qty: i.quantity }));
+    } catch (error) {
+      console.error("WhatsApp demo line items failed:", error);
+    }
+  }
+
+  const delivery = inScope?.expected_delivery_date
+    ? new Date(inScope.expected_delivery_date).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "TBD";
+
+  const demoContext = {
+    orderNumber: inScope?.order_number ?? "ORD-0000",
+    customerName: inScope?.customer_name ?? "Valued customer",
+    amount: `$${Number(inScope?.order_value ?? 0).toLocaleString("en-US")}`,
+    deliveryDate: delivery,
+    warehouse,
+    items,
+  };
 
   const hasScope = profile.role === "admin" || Boolean(profile.warehouse_id);
 
