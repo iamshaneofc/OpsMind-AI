@@ -27,6 +27,7 @@ import {
 } from "./assistant-message-parser";
 import { getComposerSuggestionChips } from "./chat-follow-up-suggestions";
 import { parseAssistantJsonBlocks } from "./parse-assistant-json";
+import { MarkdownText } from "./markdown-text";
 import { LaneAQuickView } from "./lane-a-quick-view";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createSupabaseBrowserClient } from "@/supabase/client";
@@ -72,7 +73,8 @@ function sanitizeAssistantText(text: string): string {
     .replace(/```json[\s\S]*?```/gi, "")
     .replace(/```[\s\S]*?```/g, "")
     .replace(/^\s*[\[{].*[\]}]\s*$/gm, "")
-    .replace(/\*\*/g, "")
+    // Emphasis is intentionally preserved: MarkdownText renders **bold** and
+    // *italic* as real structure instead of stripping them to plain text.
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -528,14 +530,14 @@ const MessageBubble = ({
                 {collapseFullResponse ? (
                   <>
                     {introAndRest.intro && (
-                      <div className="text-[15px] break-words leading-relaxed text-white/90 mb-2">
-                        {stripBold(introAndRest.intro)}
+                      <div className="break-words">
+                        <MarkdownText text={introAndRest.intro} />
                       </div>
                     )}
                     {showAssistantQuickView ? <AssistantQuickView text={textContent} /> : null}
                     {introAndRest.closing && (
-                      <div className="text-[14px] break-words leading-relaxed text-white/80 pt-1">
-                        {stripBold(introAndRest.closing)}
+                      <div className="break-words pt-1">
+                        <MarkdownText text={introAndRest.closing} className="text-sm text-white/80" />
                       </div>
                     )}
                     {(() => {
@@ -544,56 +546,53 @@ const MessageBubble = ({
 
                       // Parse the rest into: non-table text and markdown tables
                       const parsedRest = parseAssistantMessageToTables(rawRest);
-                      
-                      // Get non-table text lines (strip table rows and separator rows)
-                      const plainTextLines = rawRest
-                        .split('\n')
-                        .filter(line => (line.match(/\|/g) || []).length < 2 && !/^\s*[-|]+\s*$/.test(line))
-                        .map(l => stripBold(l.replace(/\*\*/g, '').replace(/`/g, "").trim()))
+
+                      // Drop table rows (rendered by QuickViewMarkdownTable) and bare
+                      // JSON lines, but keep blank lines + emphasis so MarkdownText
+                      // preserves headings, lists and bold.
+                      const nonTableText = rawRest
+                        .split("\n")
+                        .filter((line) => !/^\s*\|.*\|\s*$/.test(line))
                         .filter((line) => !/^\s*[\[{].*[\]}]\s*$/.test(line))
-                        .filter(Boolean);
+                        .join("\n")
+                        .replace(/\n{3,}/g, "\n\n")
+                        .trim();
 
                       // If Quick View is already active, it already renders markdown tables.
                       // Avoid rendering identical table data again in the "rest" section.
-                      const hasTables = !showAssistantQuickView && (parsedRest.markdownTables.length > 0 || parsedRest.hasTables);
-                      const hasPlainText = plainTextLines.length > 0;
+                      const showTables =
+                        !showAssistantQuickView && parsedRest.markdownTables.length > 0;
+                      if (!showTables && !nonTableText) return null;
 
-                      if (!hasTables && !hasPlainText) return null;
+                      const lines = nonTableText ? nonTableText.split("\n") : [];
+                      const truncated = lines.length > SHOW_DETAILS_PLAIN_TEXT_MAX_LINES;
+                      const visibleText = truncated
+                        ? lines.slice(0, SHOW_DETAILS_PLAIN_TEXT_MAX_LINES).join("\n")
+                        : nonTableText;
 
                       return (
                         <>
-                          {!showAssistantQuickView && parsedRest.markdownTables.length > 0 && (
+                          {showTables && (
                             <div className="space-y-4 pt-1 pb-3">
                               {parsedRest.markdownTables.map((tbl, tIdx) => (
                                 <QuickViewMarkdownTable key={tIdx} table={tbl} compact />
                               ))}
                             </div>
                           )}
-                          
-                          {hasPlainText && (
-                            <details className="mt-4 rounded-xl border border-white/10 bg-black/40 shadow-sm px-5 py-4 transition-all">
-                              <summary className="cursor-pointer select-none text-sm font-semibold tracking-wide text-primary uppercase">
-                                View detailed analysis
-                              </summary>
-                              <p className="mt-4 text-sm leading-relaxed text-white/80 whitespace-pre-wrap border-t border-white/5 pt-4">
-                                {plainTextLines.slice(0, SHOW_DETAILS_PLAIN_TEXT_MAX_LINES).join("\n")}
-                              </p>
-                              {plainTextLines.length > SHOW_DETAILS_PLAIN_TEXT_MAX_LINES ? (
-                                <p className="mt-3 text-xs text-muted-foreground italic">
-                                  Long reply — only part is shown here. Ask in chat if you need more.
-                                </p>
-                              ) : null}
-                            </details>
-                          )}
+                          {visibleText ? <MarkdownText text={visibleText} className="pt-1" /> : null}
+                          {truncated ? (
+                            <p className="text-xs text-muted-foreground italic">
+                              Reply continues past {SHOW_DETAILS_PLAIN_TEXT_MAX_LINES} lines — ask
+                              to see the rest.
+                            </p>
+                          ) : null}
                         </>
                       );
                     })()}
                   </>
                 ) : (
                   <>
-                    <div className="text-[15px] break-words leading-relaxed text-white/90">
-                      {stripBold(textContent)}
-                    </div>
+                    <MarkdownText text={textContent} />
                     {!hasStructuredCard ? <AssistantQuickView text={textContent} /> : null}
                   </>
                 )}

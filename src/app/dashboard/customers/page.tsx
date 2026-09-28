@@ -20,9 +20,14 @@ export default function CustomersPage() {
 
   const fetchCustomers = () => {
     fetch('/api/dashboard/customers')
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : []))
       .then(data => {
-        setCustomers(data);
+        setCustomers(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        setCustomers([]);
+      })
+      .finally(() => {
         setLoading(false);
       });
   };
