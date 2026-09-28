@@ -153,6 +153,31 @@ export function LoginForm() {
         <div className="grid grid-cols-3 gap-3">
           {demoAvailable && (
             <Button
+              variant="default"
+              size="sm"
+              className="border-white/10 bg-primary/20 hover:bg-primary/30 text-xs py-1 font-medium"
+              onClick={fillDemoAdmin}
+              disabled={demoLoading}
+            >
+              {demoLoading ? <Loader2 size={12} className="mr-1 animate-spin" /> : null}
+              Admin Demo
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
+            onClick={() => {
+              setEmail("");
+              setPassword("");
+              setEmailPlaceholder("Enter your email...");
+              document.getElementById("email")?.focus();
+            }}
+          >
+            Admin
+          </Button>
+          {process.env.NEXT_PUBLIC_DEMO_EMAIL_MANAGER && (
+            <Button
               variant="outline"
               size="sm"
               className="border-white/10 bg-white/5 hover:bg-white/10 text-xs py-1"
