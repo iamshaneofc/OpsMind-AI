@@ -19,6 +19,7 @@ export function LoginForm() {
   const [emailPlaceholder, setEmailPlaceholder] = useState("name@opsmind.ai");
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoAvailable, setDemoAvailable] = useState(false);
+  const [stage, setStage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -56,17 +57,46 @@ export function LoginForm() {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setStage("Signing in with Supabase…");
 
-    const supabase = createSupabaseBrowserClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    // signInWithPassword talks to Supabase directly (cross-region) and can take
+    // seconds on a slow link. Abort rather than spin silently forever.
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error("Sign-in timed out after 30s. Please try again.")),
+        30_000,
+      );
+    });
 
-    if (authError) {
-      setError(authError.message);
+    try {
+      // Created inside try: getSupabaseEnv() throws when NEXT_PUBLIC_* was not
+      // inlined at build time. An uncaught throw here left the button spinning
+      // forever with no error.
+      const supabase = createSupabaseBrowserClient();
+
+      const { error: authError } = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        timeout,
+      ]);
+
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        setStage(null);
+        return;
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Sign-in failed. Please try again.");
       setLoading(false);
+      setStage(null);
       return;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
 
     clearMessages();
+    setStage("Loading dashboard…");
     window.location.assign("/dashboard");
   }
 
@@ -104,6 +134,11 @@ export function LoginForm() {
           {loading ? <Loader2 size={16} className="mr-2 animate-spin" /> : <LogIn size={16} className="mr-2" />}
           Continue to Dashboard
         </Button>
+        {stage ? (
+          <p className="text-xs text-muted-foreground text-center mt-2" role="status" aria-live="polite">
+            {stage}
+          </p>
+        ) : null}
       </form>
 
       <div className="mt-8">

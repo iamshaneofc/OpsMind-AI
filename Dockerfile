@@ -1,6 +1,17 @@
 # ── Stage 1: Build ────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# NEXT_PUBLIC_* are inlined into the client bundle during `next build`.
+# .dockerignore excludes .env, so they must arrive as build args from
+# docker-compose (which reads .env). Missing them makes the browser Supabase
+# client undefined-URL and sign-in hangs. Deliberately not redeclared in the
+# runner stage: they are public values and do not need to persist.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts && npm cache clean --force
 COPY . .

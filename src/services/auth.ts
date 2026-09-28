@@ -64,7 +64,17 @@ export const getCurrentUserProfile = cache(
     if (!user) return null;
 
     const email = user.email ?? "";
-    const scope = scopePromise ? await scopePromise : await loadScope(email);
+
+    // Only reuse the speculative scope when it was loaded for the same identity
+    // getUser() just validated. A tampered cookie can make getSession()'s
+    // (unverified, storage-derived) email differ from the verified one — in that
+    // case fall back to loading scope for the verified email rather than
+    // trusting the forgery. Legitimate sessions always match, so this stays a
+    // single round trip in practice.
+    const scope =
+      scopePromise && speculativeEmail === email
+        ? await scopePromise
+        : await loadScope(email);
 
     let role: AppRole = "manager";
 
