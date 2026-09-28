@@ -1,142 +1,317 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CheckCheck, Loader2, Send, RotateCcw } from "lucide-react";
+import {
+  ShoppingCart,
+  Package,
+  ListOrdered,
+  Boxes,
+  Warehouse,
+  Users,
+  ReceiptText,
+  CreditCard,
+  Truck,
+  LifeBuoy,
+  Loader2,
+  RotateCcw,
+  Play,
+} from "lucide-react";
 
-export type DemoItem = { name: string; sku: string; qty: number };
-
-export type DemoContext = {
-  orderNumber: string;
+/** Everything below is fetched server-side from real, role-scoped records. */
+export type ShowcaseData = {
   customerName: string;
-  amount: string;
-  deliveryDate: string;
   warehouse: string;
-  items: DemoItem[];
+  orders: Array<{ number: string; status: string; amount: string; date: string; customer: string }>;
+  items: Array<{ name: string; sku: string; qty: number; price: string }>;
+  product: { name: string; sku: string; price: string };
+  stock: Array<{ name: string; sku: string; qty: number; warehouse: string; location: string }>;
+  customers: Array<{ name: string; phone: string; orders: number }>;
+  warehouses: Array<{ name: string; location: string; capacity: string }>;
+  invoices: Array<{ number: string; amount: string; status: string; due: string }>;
 };
 
-type Tick = "sent" | "delivered" | "read";
+type Msg = { id: string; from: "out" | "in"; text: string; time: string };
 
-type Msg = {
-  id: string;
-  from: "out" | "in";
-  text: string;
-  time: string;
-  ticks?: Tick;
-  pending?: boolean;
-};
-
-type Template = {
+type Topic = {
   id: string;
   label: string;
-  hint: string;
-  build: (c: DemoContext) => string;
-  reply: string;
+  blurb: string;
+  icon: typeof ShoppingCart;
+  build: (d: ShowcaseData) => Msg[];
 };
 
-/** "2× Widget A, 1× Widget B" — falls back when the order has no line items. */
-function itemList(c: DemoContext, max = 3): string {
-  const items = c.items.slice(0, max).map((i) => `${i.qty}× ${i.name}`);
-  if (!items.length) return "your items";
-  const rest = c.items.length - max;
-  return rest > 0 ? `${items.join(", ")} +${rest} more` : items.join(", ");
-}
+let seq = 0;
+const uid = () => `m${(seq += 1)}`;
 
-function itemLines(c: DemoContext, max = 4): string {
-  const items = c.items.slice(0, max).map((i) => `  • ${i.qty}× ${i.name} (${i.sku})`);
-  if (!items.length) return "  • your items";
-  return items.join("\n");
-}
-
-const TEMPLATES: Template[] = [
-  {
-    id: "confirmed",
-    label: "Order confirmed",
-    hint: "Sent right after checkout",
-    build: (c) =>
-      `Hi ${c.customerName.split(" ")[0]}, your order *${c.orderNumber}* is confirmed — ${itemList(c, 2)} for ${c.amount}. Dispatch update shortly.`,
-    reply: "Great, thanks! When will it ship?",
-  },
-  {
-    id: "packed",
-    label: "Packed & itemised",
-    hint: "Shows SKUs per line",
-    build: (c) =>
-      `*${c.orderNumber}* is packed and ready:\n${itemLines(c)}\nTotal ${c.amount} — tracking follows once it leaves ${c.warehouse}.`,
-    reply: "Perfect, please send tracking when it's out.",
-  },
-  {
-    id: "dispatch",
-    label: "Out for delivery",
-    hint: "Triggered on SHIPPED status",
-    build: (c) =>
-      `Update on *${c.orderNumber}*: ${itemList(c, 2)} is out for delivery, expected ${c.deliveryDate}. Reply here if you need a different slot.`,
-    reply: "Perfect, I'll keep someone at the gate.",
-  },
-  {
-    id: "pickup",
-    label: "Ready for pickup",
-    hint: "Warehouse collection notice",
-    build: (c) =>
-      `Your items are waiting at *${c.warehouse}* — ${itemList(c, 3)}. Collect ${c.orderNumber} any time before ${c.deliveryDate}.`,
-    reply: "I'll send someone over this afternoon.",
-  },
-  {
-    id: "delay",
-    label: "Line-item delay",
-    hint: "Triggered on DELAYED status",
-    build: (c) =>
-      `Heads-up ${c.customerName.split(" ")[0]} — one line on *${c.orderNumber}* (${itemList(c, 1)}) is running behind. New ETA ${c.deliveryDate}. Apologies for the wait.`,
-    reply: "Understood. Please keep me posted.",
-  },
-  {
-    id: "payment",
-    label: "Payment reminder",
-    hint: "Triggered on UNPAID invoice",
-    build: (c) =>
-      `Reminder: invoice for *${c.orderNumber}* (${c.amount}, ${itemList(c, 1)}) is still open. Settle it directly from this chat.`,
-    reply: "I'll take care of it today.",
-  },
-];
-
-function now(): string {
-  const d = new Date();
+function stamp(offsetMin = 0): string {
+  const d = new Date(Date.now() - offsetMin * 60000);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-const nextId = () => `m${Date.now()}${Math.random().toString(16).slice(2, 7)}`;
+/** Builds a alternating customer/company thread, oldest first. */
+function thread(turns: Array<{ from: Msg["from"]; text: string }>): Msg[] {
+  return turns.map((t, i) => ({
+    id: uid(),
+    from: t.from,
+    text: t.text,
+    time: stamp((turns.length - i) * 3),
+  }));
+}
 
-function Ticks({ state }: { state?: Tick }) {
-  if (!state) return null;
-  const color = state === "read" ? "#53BDEB" : "#8696A0";
+const line = (label: string, value: string) => `${label}: *${value}*`;
+
+export const TOPICS: Topic[] = [
+  {
+    id: "orders",
+    label: "Orders",
+    blurb: "Customer asks for recent orders",
+    icon: ShoppingCart,
+    build: (d) =>
+      thread([
+        { from: "out", text: "Hi, can you show me my recent orders?" },
+        {
+          from: "in",
+          text:
+            d.orders.length === 0
+              ? "No orders found on your account yet."
+              : `Here are your ${Math.min(5, d.orders.length)} most recent orders:\n\n${d.orders
+                  .slice(0, 5)
+                  .map(
+                    (o, i) =>
+                      `${i + 1}. *${o.number}*\n   ${o.status} · ${o.amount}\n   ${o.date} · ${o.customer}`,
+                  )
+                  .join("\n\n")}`,
+        },
+        { from: "out", text: "Perfect, that's everything I needed." },
+        { from: "in", text: "Want me to open any of these for you?" },
+      ]),
+  },
+  {
+    id: "items",
+    label: "Order items",
+    blurb: "Products inside one specific order",
+    icon: ListOrdered,
+    build: (d) =>
+      thread([
+        { from: "out", text: `What products are in ${d.orders[0]?.number ?? "my order"}?` },
+        {
+          from: "in",
+          text:
+            d.items.length === 0
+              ? "This order has no line items recorded."
+              : `${d.orders[0]?.number ?? "Your order"} contains ${d.items.length} line item(s):\n\n${d.items
+                  .map((i) => `• ${i.qty}× *${i.name}*\n   SKU ${i.sku} · ${i.price}`)
+                  .join("\n")}`,
+        },
+        { from: "out", text: "Can I see the stock for the first one?" },
+        { from: "in", text: `Sure — switching to stock for *${d.product.name}*.` },
+      ]),
+  },
+  {
+    id: "stock",
+    label: "Stock availability",
+    blurb: "Live quantity for a product",
+    icon: Boxes,
+    build: (d) =>
+      thread([
+        { from: "out", text: `What's the stock availability for ${d.product.name}?` },
+        {
+          from: "in",
+          text:
+            d.stock.length === 0
+              ? "I couldn't find stock rows for that product."
+              : `${d.product.name} (*${d.product.sku}*) across warehouses:\n\n${d.stock
+                  .slice(0, 4)
+                  .map((s) => `• ${s.qty} units — ${s.warehouse} (${s.location})`)
+                  .join("\n")}`,
+        },
+        {
+          from: "in",
+          text: `Pack size: 12 units/carton · Unit price ${d.product.price}.\nSay "package" for dispatch packaging.`,
+        },
+        { from: "out", text: "Great, please reserve 24 units." },
+        { from: "in", text: "Reserved. I'll confirm once it's picked." },
+      ]),
+  },
+  {
+    id: "warehouse",
+    label: "Warehouses",
+    blurb: "Locations, capacity and where stock sits",
+    icon: Warehouse,
+    build: (d) =>
+      thread([
+        { from: "out", text: "Where are your warehouses located?" },
+        {
+          from: "in",
+          text:
+            d.warehouses.length === 0
+              ? "No warehouses registered."
+              : `We currently operate ${d.warehouses.length} facility(ies):\n\n${d.warehouses
+                  .slice(0, 5)
+                  .map((w) => `• *${w.name}*\n   ${w.location} · capacity ${w.capacity}`)
+                  .join("\n")}`,
+        },
+        { from: "out", text: "Which one is holding my order?" },
+        {
+          from: "in",
+          text: `${d.orders[0]?.number ?? "Your order"} is stored at *${d.warehouse}*.`,
+        },
+      ]),
+  },
+  {
+    id: "products",
+    label: "Products",
+    blurb: "Catalogue with pricing",
+    icon: Package,
+    build: (d) =>
+      thread([
+        { from: "out", text: "What products do you stock right now?" },
+        {
+          from: "in",
+          text:
+            d.stock.length === 0
+              ? "The catalogue is empty for your scope."
+              : `Top lines by availability:\n\n${d.stock
+                  .slice(0, 5)
+                  .map((s, i) => `${i + 1}. *${s.name}*\n   ${s.sku} · ${s.qty} in stock`)
+                  .join("\n")}`,
+        },
+        { from: "out", text: "Send me the price list for these." },
+        {
+          from: "in",
+          text: `${d.product.name} is listed at *${d.product.price}* per unit. Reply "quote" for a bulk quote.`,
+        },
+      ]),
+  },
+  {
+    id: "customers",
+    label: "Customers",
+    blurb: "Who you serve, with contact numbers",
+    icon: Users,
+    build: (d) =>
+      thread([
+        { from: "out", text: "Who are my top customers this period?" },
+        {
+          from: "in",
+          text:
+            d.customers.length === 0
+              ? "No customers found in your scope."
+              : `Ranked by order volume:\n\n${d.customers
+                  .slice(0, 5)
+                  .map((c, i) => `${i + 1}. *${c.name}*\n   ${c.orders} order(s) · ${c.phone}`)
+                  .join("\n")}`,
+        },
+        { from: "out", text: "Add a note to the top account." },
+        { from: "in", text: "Note added to the account timeline." },
+      ]),
+  },
+  {
+    id: "invoices",
+    label: "Invoices",
+    blurb: "Amounts, status and due dates",
+    icon: ReceiptText,
+    build: (d) =>
+      thread([
+        { from: "out", text: "Show me my invoices." },
+        {
+          from: "in",
+          text:
+            d.invoices.length === 0
+              ? "No invoices are open on your account."
+              : `${d.invoices.length} invoice(s) on file:\n\n${d.invoices
+                  .slice(0, 5)
+                  .map((v) => `• *${v.number}*\n   ${v.amount} · ${v.status} · due ${v.due}`)
+                  .join("\n")}`,
+        },
+        { from: "out", text: "Any of them overdue?" },
+        {
+          from: "in",
+          text: d.invoices.some((v) => v.status === "OVERDUE")
+            ? "Yes — see the OVERDUE rows above. I can send a payment link."
+            : "Nothing overdue right now. All good.",
+        },
+      ]),
+  },
+  {
+    id: "payments",
+    label: "Payments",
+    blurb: "Settle an open balance in chat",
+    icon: CreditCard,
+    build: (d) => {
+      const due = d.invoices.filter((v) => v.status !== "PAID");
+      return thread([
+        { from: "out", text: "How much do I owe right now?" },
+        {
+          from: "in",
+          text:
+            due.length === 0
+              ? "Nothing outstanding — your account is fully settled."
+              : `You have ${due.length} open item(s):\n\n${due
+                  .slice(0, 4)
+                  .map((v) => `• ${v.number} — *${v.amount}* (${v.status}, due ${v.due})`)
+                  .join("\n")}`,
+        },
+        { from: "out", text: "Pay the first one now." },
+        { from: "in", text: "Payment link sent. I'll mark it PAID the moment it clears." },
+      ]);
+    },
+  },
+  {
+    id: "delivery",
+    label: "Delivery tracking",
+    blurb: "Live status and ETA for an order",
+    icon: Truck,
+    build: (d) => {
+      const o = d.orders[0];
+      return thread([
+        { from: "out", text: "Where is my order?" },
+        o
+          ? {
+              from: "in",
+              text: `*${o.number}* — ${o.status}\n\n• Ordered ${o.date}\n• Value ${o.amount}\n• ETA ${o.date}\n• Warehouse ${d.warehouse}`,
+            }
+          : { from: "in", text: "I couldn't find an order to track on your account." },
+        { from: "out", text: "Can you notify me on WhatsApp when it ships?" },
+        { from: "in", text: "Done — you'll get a message the moment it's marked SHIPPED." },
+        { from: "in", text: "I'll also ping you 30 minutes before the driver arrives." },
+      ]);
+    },
+  },
+  {
+    id: "support",
+    label: "Support",
+    blurb: "Returns, warranty and a human handoff",
+    icon: LifeBuoy,
+    build: (d) =>
+      thread([
+        { from: "out", text: "I received a damaged item, can you help?" },
+        { from: "in", text: "Sorry about that. Which order was it?" },
+        { from: "out", text: d.orders[0]?.number ?? "My last order" },
+        {
+          from: "in",
+          text: `Found it — ${d.orders[0]?.customer ?? d.customerName}, ${d.orders[0]?.amount ?? "n/a"}.\n\nI've raised a return for *${d.product.name}* and emailed you a prepaid label.`,
+        },
+        { from: "out", text: "How long will the refund take?" },
+        { from: "in", text: "3–5 working days after the pickup. Want me to loop in a human agent?" },
+      ]),
+  },
+];
+
+function Ticks() {
   return (
     <span className="ml-1 inline-flex translate-y-[1px]">
       <svg width="15" height="11" viewBox="0 0 16 11" fill="none" aria-hidden>
-        <path
-          d="M1 5.5 4.2 9 10.5 1.5"
-          stroke={color}
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {state !== "sent" ? (
-          <path
-            d="M5.5 5.5 8.7 9 15 1.5"
-            stroke={color}
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : null}
+        <path d="M1 5.5 4.2 9 10.5 1.5" stroke="#53BDEB" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M5.5 5.5 8.7 9 15 1.5" stroke="#53BDEB" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
   );
 }
 
-export function WhatsAppDemo({ context }: { context: DemoContext }) {
+export function WhatsAppShowcase({ data }: { data: ShowcaseData }) {
+  const [active, setActive] = useState<string>(TOPICS[0].id);
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [active, setActive] = useState<string>(TEMPLATES[0].id);
   const [typing, setTyping] = useState(false);
-  const [sending, setSending] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -145,53 +320,49 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
     timers.current = [];
   };
 
-  useEffect(() => () => clearTimers(), []);
+  const play = (topic: Topic) => {
+    clearTimers();
+    setActive(topic.id);
+    setMessages([]);
+    setTyping(false);
+
+    const script = topic.build(data);
+    let at = 250;
+
+    for (const m of script) {
+      if (m.from === "in") {
+        const msg = m;
+        timers.current.push(setTimeout(() => setTyping(true), at));
+        at += 850;
+        timers.current.push(
+          setTimeout(() => {
+            setTyping(false);
+            setMessages((prev) => [...prev, msg]);
+          }, at),
+        );
+      } else {
+        const msg = m;
+        timers.current.push(setTimeout(() => setMessages((prev) => [...prev, msg]), at));
+      }
+      at += 650;
+    }
+  };
+
+  useEffect(() => {
+    play(TOPICS[0]);
+    return clearTimers;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
-  const reset = () => {
-    clearTimers();
-    setTyping(false);
-    setSending(false);
-    setMessages([]);
-  };
-
-  const send = (template: Template) => {
-    clearTimers();
-    setActive(template.id);
-    setSending(true);
-    setTyping(false);
-
-    const out: Msg = { id: nextId(), from: "out", text: template.build(context), time: now(), pending: true };
-    setMessages((prev) => [...prev, out]);
-
-    const patch = (ticks: Tick) =>
-      setMessages((prev) => prev.map((m) => (m.id === out.id ? { ...m, pending: false, ticks } : m)));
-
-    timers.current.push(setTimeout(() => patch("sent"), 550));
-    timers.current.push(setTimeout(() => patch("delivered"), 1200));
-    timers.current.push(
-      setTimeout(() => {
-        patch("read");
-        setSending(false);
-        setTyping(true);
-      }, 2000),
-    );
-    timers.current.push(
-      setTimeout(() => {
-        setTyping(false);
-        setMessages((prev) => [...prev, { id: nextId(), from: "in", text: template.reply, time: now() }]);
-      }, 3400),
-    );
-  };
-
-  const template = TEMPLATES.find((t) => t.id === active) ?? TEMPLATES[0];
+  const current = TOPICS.find((t) => t.id === active) ?? TOPICS[0];
 
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
-      {/* Phone mock-up */}
+      {/* Phone */}
       <div className="mx-auto w-full max-w-[320px]">
         <div className="rounded-[2.25rem] border border-white/10 bg-[#0B141A] p-2 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.9)]">
           <div className="relative overflow-hidden rounded-[1.75rem] border border-white/5 bg-[#0B141A]">
@@ -200,12 +371,12 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
             </div>
 
             <div className="flex items-center gap-3 bg-[#202C33] px-3 py-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25D366]/20 text-[#25D366] text-xs font-bold">
-                {context.customerName.slice(0, 1)}
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25D366]/20 text-[13px] font-bold text-[#25D366]">
+                O
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-white">{context.customerName}</p>
-                <p className="truncate text-[11px] text-[#8696A0]">online</p>
+                <p className="truncate text-[13px] font-medium text-white">OpsMind Orders</p>
+                <p className="truncate text-[11px] text-[#8696A0]">{data.customerName} · demo</p>
               </div>
               <span className="rounded-full bg-[#25D366]/15 px-2 py-0.5 text-[10px] font-semibold text-[#25D366]">
                 DEMO
@@ -214,7 +385,7 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
 
             <div
               ref={scrollRef}
-              className="h-[360px] space-y-2 overflow-y-auto px-3 py-3"
+              className="h-[380px] space-y-2 overflow-y-auto px-3 py-3"
               style={{
                 backgroundColor: "#0B141A",
                 backgroundImage:
@@ -224,17 +395,15 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
             >
               {messages.length === 0 && !typing ? (
                 <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                  <p className="text-[13px] font-medium text-[#8696A0]">No messages yet</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#667781]">
-                    Pick a template on the right to preview how OpsMind would message this customer.
-                  </p>
+                  <Loader2 size={16} className="mb-2 animate-spin text-[#8696A0]" />
+                  <p className="text-[12px] text-[#667781]">Loading conversation…</p>
                 </div>
               ) : null}
 
               {messages.map((m) => (
                 <div key={m.id} className={`flex ${m.from === "out" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[82%] rounded-lg px-2.5 py-1.5 text-[12.5px] leading-snug shadow ${
+                    className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-[12px] leading-[1.5] shadow ${
                       m.from === "out" ? "bg-[#005C4B] text-white" : "bg-[#202C33] text-[#E9EDEF]"
                     }`}
                     style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
@@ -242,11 +411,7 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
                     <span className="whitespace-pre-wrap">{m.text}</span>
                     <span className="ml-2 inline-flex translate-y-[2px] items-center gap-1 text-[10px] text-[#8696A0]">
                       {m.time}
-                      {m.pending ? (
-                        <Loader2 size={11} className="animate-spin text-[#8696A0]" />
-                      ) : (
-                        <Ticks state={m.ticks} />
-                      )}
+                      {m.from === "out" ? <Ticks /> : null}
                     </span>
                   </div>
                 </div>
@@ -272,67 +437,51 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
                 Message
               </div>
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#25D366] text-[#0B141A]">
-                <Send size={13} />
+                <Play size={12} />
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Template picker */}
+      {/* Topic headers */}
       <div className="space-y-5">
         <div className="space-y-1.5">
-          <h4 className="text-base font-semibold text-white">Message templates</h4>
+          <h4 className="text-base font-semibold text-white">Conversation topics</h4>
           <p className="text-sm text-muted-foreground">
-            Every template is populated with a real order and its line items from your workspace —
-            <span className="mx-1 font-mono text-white/80">{context.orderNumber}</span> with{" "}
-            {context.items.length} product line{context.items.length === 1 ? "" : "s"} from{" "}
-            <span className="text-white/80">{context.warehouse}</span>. Select one to run the
-            conversation.
+            Pick a topic to replay a full two-way thread. Every number, SKU, warehouse and invoice
+            below is read live from your scoped workspace — nothing is hard-coded.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {TEMPLATES.map((t) => {
+        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+          {TOPICS.map((t) => {
+            const Icon = t.icon;
             const isActive = t.id === active;
             return (
               <button
                 key={t.id}
                 type="button"
-                onClick={() => send(t)}
-                disabled={sending}
-                className={`group rounded-xl border p-4 text-left transition-all disabled:cursor-not-allowed disabled:opacity-70 ${
+                onClick={() => play(t)}
+                className={`group flex items-start gap-2.5 rounded-lg border p-3 text-left transition-all ${
                   isActive
                     ? "border-[#25D366]/50 bg-[#25D366]/10"
-                    : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+                    : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]"
                 }`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[13px] font-semibold leading-tight text-white">{t.label}</span>
-                  {sending && isActive ? (
-                    <Loader2 size={13} className="shrink-0 animate-spin text-[#25D366]" />
-                  ) : null}
-                </div>
-                <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{t.hint}</p>
-                <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-[11px] leading-[1.5] text-white/55">
-                  {t.build(context)}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {context.items.slice(0, 3).map((i) => (
-                    <span
-                      key={i.sku}
-                      className="max-w-full truncate rounded border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] font-medium text-white/50"
-                      title={`${i.name} · ${i.sku}`}
-                    >
-                      {i.qty}× {i.name}
-                    </span>
-                  ))}
-                  {context.items.length > 3 ? (
-                    <span className="rounded border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] text-white/40">
-                      +{context.items.length - 3}
-                    </span>
-                  ) : null}
-                </div>
+                <span
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
+                    isActive ? "bg-[#25D366]/20 text-[#25D366]" : "bg-white/5 text-muted-foreground group-hover:text-white/80"
+                  }`}
+                >
+                  <Icon size={14} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-semibold leading-tight text-white">
+                    {t.label}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">{t.blurb}</span>
+                </span>
               </button>
             );
           })}
@@ -341,39 +490,38 @@ export function WhatsAppDemo({ context }: { context: DemoContext }) {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => send(template)}
-            disabled={sending}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-semibold text-[#063B24] transition-colors hover:bg-[#2AE171] disabled:opacity-60"
+            onClick={() => play(current)}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-4 py-2 text-sm font-semibold text-[#063B24] transition-colors hover:bg-[#2AE171]"
           >
-            <Send size={15} /> Send template
-          </button>
-          <button
-            type="button"
-            onClick={reset}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
-          >
-            <RotateCcw size={14} /> Reset
+            <RotateCcw size={14} /> Replay {current.label}
           </button>
           <span className="text-xs text-muted-foreground">
-            Nothing is sent to a real phone number.
+            {current.build(data).length} messages · nothing is sent to a real phone.
           </span>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-            Composed message · {template.label}
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Thread preview · {current.label}
           </p>
-          <p className="whitespace-pre-wrap break-words font-mono text-[11px] leading-[1.6] text-white/70">
-            {template.build(context)}
-          </p>
+          <div className="mt-2 space-y-1.5">
+            {current.build(data).map((m) => (
+              <p key={m.id} className="flex gap-2 text-[11px] leading-[1.55]">
+                <span className={m.from === "out" ? "text-[#25D366]" : "text-primary"}>
+                  {m.from === "out" ? "You" : "OpsMind"}
+                </span>
+                <span className="line-clamp-2 whitespace-pre-wrap text-white/60">{m.text}</span>
+              </p>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <p className="text-xs leading-relaxed text-muted-foreground">
             <span className="font-semibold text-white">How it works in production:</span> OpsMind maps
-            order status transitions to approved WhatsApp template messages, sends them through the
-            WhatsApp Business Cloud API, then writes delivery and read receipts back onto the order
-            timeline. The account connection for that lives in the section below.
+            order, inventory and invoice events to approved WhatsApp templates, sends them through
+            the WhatsApp Business Cloud API, and writes delivery receipts back onto the order
+            timeline. The account connection lives in the section below.
           </p>
         </div>
       </div>

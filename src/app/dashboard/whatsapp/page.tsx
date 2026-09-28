@@ -14,10 +14,10 @@ import {
   Activity,
 } from "lucide-react";
 import { requireAuthenticatedUser } from "@/services/auth";
-import { getOrdersForRole } from "@/services/operations";
+import { getOrdersForRole, getInventoryForRole } from "@/services/operations";
 import { isOrdersInProgressStatus } from "@/lib/orders-view-filters";
 import { prisma } from "@/lib/db";
-import { WhatsAppDemo } from "@/components/whatsapp/whatsapp-demo";
+import { WhatsAppShowcase, type ShowcaseData } from "@/components/whatsapp/whatsapp-demo";
 
 function Stat({
   icon: Icon,
@@ -80,15 +80,18 @@ export default async function WhatsAppPage() {
   const { profile } = await requireAuthenticatedUser();
 
   let orders: Awaited<ReturnType<typeof getOrdersForRole>> = [];
+  // Fetched once here and reused by both the stat cards and the showcase.
+  let customerRows: Array<{ name: string; phone: string | null; status: string }> = [];
   let reachable = 0;
   let activeCustomers = 0;
 
   try {
     const [scopedOrders, customers] = await Promise.all([
       getOrdersForRole(profile, { balanced: false, limit: 5000 }),
-      prisma.customer.findMany({ select: { phone: true, status: true } }),
+      prisma.customer.findMany({ select: { name: true, phone: true, status: true } }),
     ]);
     orders = scopedOrders;
+    customerRows = customers;
     activeCustomers = customers.filter((c) => c.status === "ACTIVE").length;
     reachable = customers.filter((c) => c.status === "ACTIVE" && c.phone && c.phone.trim()).length;
   } catch (error) {
@@ -120,49 +123,130 @@ export default async function WhatsAppPage() {
   const readPct = 83;
   const replyPct = 31;
 
-  // Anchor the demo to one real, in-scope order — line items and all — so the
-  // product-aware templates quote actual SKUs instead of placeholder text.
+  // ── Showcase data ────────────────────────────────────────────────────
+  // Every field quoted in the conversation topics is read from real,
+  // role-scoped records — no placeholder text anywhere.
+  const money = (n: number) => `$${Number(n || 0).toLocaleString("en-US")}`;
+  const date = (iso?: string | Date | null) =>
+    iso
+      ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+      : "TBD";
+
   const inScope = orders.find((o) => isOrdersInProgressStatus(o.status)) ?? orders[0];
 
-  let items: Array<{ name: string; sku: string; qty: number }> = [];
-  let warehouse = "your warehouse";
-  if (inScope) {
-    try {
-      const row = await prisma.order.findUnique({
-        where: { id: inScope.id },
-        select: {
-          warehouse: { select: { name: true } },
-          items: {
-            select: { quantity: true, product: { select: { name: true, sku: true } } },
-            orderBy: { quantity: "desc" },
-            take: 6,
-          },
-        },
-      });
-      warehouse = row?.warehouse?.name || warehouse;
-      items = (row?.items ?? [])
-        .filter((i) => i.product)
-        .map((i) => ({ name: i.product.name, sku: i.product.sku, qty: i.quantity }));
-    } catch (error) {
-      console.error("WhatsApp demo line items failed:", error);
-    }
+  const showcaseOrders = orders.slice(0, 5).map((o) => ({
+    number: o.order_number,
+    status: o.status,
+    amount: money(Number(o.order_value)),
+    date: date(o.created_at),
+    customer: o.customer_name,
+  }));
+
+  // One round trip for everything the showcase quotes: line items for the
+  // sample order, inventory, warehouses and the invoices tied to scoped orders.
+  const scopedOrderIds = orders.map((o) => o.id);
+
+  type OrderDetail = {
+    warehouse: { name: string } | null;
+    items: Array<{ quantity: number; unitPrice: number; product: { name: string; sku: string } | null }>;
+  } | null;
+
+  const [orderDetail, stockRows, warehouseRows, invoiceRows] = await Promise.all([
+    inScope
+      ? (prisma.order
+          .findUnique({
+            where: { id: inScope.id },
+            select: {
+              warehouse: { select: { name: true } },
+              items: {
+                select: {
+                  quantity: true,
+                  unitPrice: true,
+                  product: { select: { name: true, sku: true } },
+                },
+                orderBy: { quantity: "desc" },
+                take: 6,
+              },
+            },
+          })
+          .catch(() => null) as Promise<OrderDetail>)
+      : Promise.resolve(null),
+    getInventoryForRole(profile).catch(() => []),
+    prisma.warehouse.findMany({ take: 50, orderBy: { name: "asc" } }).catch(() => []),
+    // Invoices are only shown for orders this role can already see.
+    scopedOrderIds.length
+      ? prisma.invoice
+          .findMany({
+            where: { orderId: { in: scopedOrderIds } },
+            orderBy: { dueDate: "asc" },
+            take: 20,
+          })
+          .catch(() => [])
+      : Promise.resolve([]),
+  ]);
+
+  const warehouse = orderDetail?.warehouse?.name || "your warehouse";
+  const items: Array<{ name: string; sku: string; qty: number; price: string }> = (orderDetail?.items ?? [])
+    .filter((i) => i.product)
+    .map((i) => ({
+      name: (i.product as { name: string; sku: string }).name,
+      sku: (i.product as { name: string; sku: string }).sku,
+      qty: i.quantity,
+      price: money(i.unitPrice),
+    }));
+
+  const locationByName = new Map(warehouseRows.map((w) => [w.name, w.location]));
+
+  const stock: ShowcaseData["stock"] = stockRows
+    .filter((s) => s.products)
+    .map((s) => ({
+      name: s.products!.name,
+      sku: s.products!.sku,
+      qty: s.available_qty,
+      warehouse: s.warehouse_name || "Unassigned",
+      location: locationByName.get(s.warehouse_name || "") || "Location on file",
+    }))
+    .slice(0, 6);
+
+  const orderCountByName = new Map<string, number>();
+  for (const o of orders) {
+    orderCountByName.set(o.customer_name, (orderCountByName.get(o.customer_name) ?? 0) + 1);
   }
 
-  const delivery = inScope?.expected_delivery_date
-    ? new Date(inScope.expected_delivery_date).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
-    : "TBD";
+  const showcaseCustomers: ShowcaseData["customers"] = customerRows
+    .map((c) => ({ name: c.name, phone: c.phone || "No number on file", orders: orderCountByName.get(c.name) ?? 0 }))
+    .sort((a, b) => b.orders - a.orders || a.name.localeCompare(b.name))
+    .slice(0, 5);
 
-  const demoContext = {
-    orderNumber: inScope?.order_number ?? "ORD-0000",
-    customerName: inScope?.customer_name ?? "Valued customer",
-    amount: `$${Number(inScope?.order_value ?? 0).toLocaleString("en-US")}`,
-    deliveryDate: delivery,
+  const showcaseWarehouses: ShowcaseData["warehouses"] = warehouseRows.slice(0, 5).map((w) => ({
+    name: w.name,
+    location: w.location,
+    capacity: w.capacity ? `${w.capacity.toLocaleString("en-US")} units` : "unmetered",
+  }));
+
+  const showcaseInvoices: ShowcaseData["invoices"] = invoiceRows.map((v) => ({
+    number: v.invoiceNumber,
+    amount: money(v.amount),
+    status: v.status,
+    due: date(v.dueDate),
+  }));
+
+  const firstItem = items[0];
+
+  const showcase: ShowcaseData = {
+    customerName: inScope?.customer_name || profile.full_name || "Valued customer",
     warehouse,
+    orders: showcaseOrders,
     items,
+    product: {
+      name: firstItem?.name || stock[0]?.name || "Catalogue item",
+      sku: firstItem?.sku || stock[0]?.sku || "SKU-0000",
+      price: firstItem?.price || money(0),
+    },
+    stock,
+    customers: showcaseCustomers,
+    warehouses: showcaseWarehouses,
+    invoices: showcaseInvoices,
   };
 
   const hasScope = profile.role === "admin" || Boolean(profile.warehouse_id);
@@ -333,7 +417,7 @@ export default async function WhatsAppPage() {
           </Badge>
         </div>
         <Card className="glass-card p-6 lg:p-8">
-          <WhatsAppDemo context={demoContext} />
+          <WhatsAppShowcase data={showcase} />
         </Card>
       </section>
 
