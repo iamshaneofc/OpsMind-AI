@@ -10,6 +10,7 @@ import {
   LineChart,
   FileText,
   Users,
+  MessageCircle,
 } from "lucide-react";
 
 export const allItems = [
@@ -20,6 +21,7 @@ export const allItems = [
   { name: "Analytics", href: "/dashboard/insights", icon: LineChart },
   { name: "Assistant", href: "/dashboard/chatbot", icon: MessageSquare },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
+  { name: "WhatsApp", href: "/dashboard/whatsapp", icon: MessageCircle },
   { name: "Settings", href: "/dashboard/account", icon: User },
 ];
 

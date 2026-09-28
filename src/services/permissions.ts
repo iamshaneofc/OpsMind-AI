@@ -3,12 +3,21 @@ import type { AppRole } from "@/types/auth";
 export function canAccessSection(role: AppRole, section: string) {
   if (role === "admin") return true;
   if (role === "manager") {
-    return ["dashboard", "orders", "inventory", "chatbot", "account", "customers", "insights", "reports"].includes(section);
+    return ["dashboard", "orders", "inventory", "chatbot", "account", "customers", "insights", "reports", "whatsapp"].includes(section);
   }
   if (role === "analyst") {
-    return ["dashboard", "orders", "inventory", "chatbot", "account", "alerts", "customers", "insights", "reports"].includes(
-      section,
-    );
+    return [
+      "dashboard",
+      "orders",
+      "inventory",
+      "chatbot",
+      "account",
+      "alerts",
+      "customers",
+      "insights",
+      "reports",
+      "whatsapp",
+    ].includes(section);
   }
   return false;
 }
@@ -22,6 +31,7 @@ export const SECTION_LABELS: Array<{ key: string; label: string }> = [
   { key: "insights", label: "Analytics" },
   { key: "chatbot", label: "Assistant" },
   { key: "reports", label: "Reports" },
+  { key: "whatsapp", label: "WhatsApp" },
   { key: "alerts", label: "Alerts" },
   { key: "account", label: "Settings" },
 ];
