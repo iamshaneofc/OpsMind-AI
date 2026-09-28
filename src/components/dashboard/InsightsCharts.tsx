@@ -3,29 +3,35 @@
 import { Card, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const performanceData = [
-  { name: 'Jan', revenue: 4000, orders: 240 },
-  { name: 'Feb', revenue: 3000, orders: 139 },
-  { name: 'Mar', revenue: 2000, orders: 980 },
-  { name: 'Apr', revenue: 2780, orders: 390 },
-  { name: 'May', revenue: 1890, orders: 480 },
-  { name: 'Jun', revenue: 2390, orders: 380 },
-  { name: 'Jul', revenue: 3490, orders: 430 },
-];
+export type PerformancePoint = { name: string; revenue: number };
+export type InventoryPoint = { category: string; stock: number };
 
-const inventoryData = [
-  { category: 'Raw Mat', stock: 400 },
-  { category: 'Pkg', stock: 300 },
-  { category: 'Finished', stock: 300 },
-  { category: 'Spares', stock: 200 },
-];
+type Props = {
+  performanceData?: PerformancePoint[];
+  inventoryData?: InventoryPoint[];
+  revenueSubtitle?: string;
+  inventorySubtitle?: string;
+};
 
-export function InsightsCharts() {
+export function InsightsCharts({
+  performanceData = [],
+  inventoryData = [],
+  revenueSubtitle,
+  inventorySubtitle,
+}: Props) {
+  const emptyRevenue = performanceData.length === 0;
+  const emptyInventory = inventoryData.length === 0;
   return (
     <div className="grid gap-6 md:grid-cols-2 mt-8">
       <Card className="glass-card p-6 h-[350px] flex flex-col hover:border-primary/30">
-        <CardTitle className="text-sm font-medium text-white mb-6">Revenue & Order Trend (H1 2026)</CardTitle>
+        <CardTitle className="text-sm font-medium text-white mb-1">Revenue Trend</CardTitle>
+        <p className="mb-5 text-xs text-muted-foreground">{revenueSubtitle ?? "No data in scope."}</p>
         <div className="flex-1 w-full h-full min-h-0">
+          {emptyRevenue ? (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No orders in scope yet.
+            </div>
+          ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={performanceData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
@@ -38,12 +44,19 @@ export function InsightsCharts() {
               <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
+          )}
         </div>
       </Card>
 
       <Card className="glass-card p-6 h-[350px] flex flex-col hover:border-primary/30">
-        <CardTitle className="text-sm font-medium text-white mb-6">Inventory Distribution by Category</CardTitle>
+        <CardTitle className="text-sm font-medium text-white mb-1">Stock by Warehouse</CardTitle>
+        <p className="mb-5 text-xs text-muted-foreground">{inventorySubtitle ?? "No data in scope."}</p>
         <div className="flex-1 w-full h-full min-h-0">
+          {emptyInventory ? (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No inventory in scope yet.
+            </div>
+          ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={inventoryData} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" horizontal={false} />
@@ -57,6 +70,7 @@ export function InsightsCharts() {
               <Bar dataKey="stock" fill="#10b981" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
       </Card>
     </div>

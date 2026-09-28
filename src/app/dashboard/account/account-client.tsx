@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { User, Key, Shield, Building, Users, UserCheck, Activity, Settings, Loader2, Check } from "lucide-react";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { ApiKeysPanel } from "./api-keys-panel";
 import { TeamManagementPanel } from "./team-management-panel";
+import { WorkspacePanel } from "./workspace-panel";
+import { SecurityPanel } from "./security-panel";
+import { PermissionsPanel } from "./permissions-panel";
+import { AuditPanel } from "./audit-panel";
+import { PreferencesPanel } from "./preferences-panel";
 
 interface AccountClientProps {
   initialName: string | null;
@@ -17,6 +22,7 @@ interface AccountClientProps {
 }
 
 export function AccountClient({ initialName, email, role }: AccountClientProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("profile");
   const fullName = initialName || email.split('@')[0];
   const nameParts = fullName.split(' ');
@@ -41,6 +47,9 @@ export function AccountClient({ initialName, email, role }: AccountClientProps) 
       });
       if (res.ok) {
         setSaved(true);
+        // Re-render server components so the top-nav shows the new name
+        // immediately instead of waiting for a full navigation.
+        router.refresh();
         setTimeout(() => setSaved(false), 2000);
       }
     } catch {
@@ -161,16 +170,33 @@ export function AccountClient({ initialName, email, role }: AccountClientProps) 
             </motion.div>
           )}
 
-          {/* Placeholder for other tabs */}
-          {["workspace", "security", "users", "roles", "audit", "preferences"].includes(activeTab) && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground mb-4">
-                <Settings size={24} />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Coming Soon</h3>
-              <p className="text-muted-foreground max-w-sm">
-                The {tabs.find(t => t.id === activeTab)?.label} panel is currently under development. Check back later.
-              </p>
+          {activeTab === "workspace" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <WorkspacePanel />
+            </motion.div>
+          )}
+
+          {activeTab === "security" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <SecurityPanel email={email} />
+            </motion.div>
+          )}
+
+          {activeTab === "roles" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <PermissionsPanel currentRole={role} />
+            </motion.div>
+          )}
+
+          {activeTab === "audit" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <AuditPanel isAdmin={role === "admin"} />
+            </motion.div>
+          )}
+
+          {activeTab === "preferences" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <PreferencesPanel />
             </motion.div>
           )}
 

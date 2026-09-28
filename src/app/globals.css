@@ -63,3 +63,25 @@ body {
   }
 }
 
+
+/* ── Preferences: accent ───────────────────────────────────────────── */
+[data-accent="emerald"] { --primary: 160 84% 39%; --ring: 160 84% 39%; }
+[data-accent="amber"]   { --primary: 38 92% 50%;  --ring: 38 92% 50%; }
+[data-accent="rose"]    { --primary: 348 83% 53%; --ring: 348 83% 53%; }
+[data-accent="sky"]     { --primary: 199 89% 48%; --ring: 199 89% 48%; }
+
+/* ── Preferences: density ──────────────────────────────────────────── */
+[data-density="compact"] .glass-card { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+[data-density="compact"] .glass-panel { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+[data-density="compact"] table td { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+[data-density="compact"] .space-y-4 > * + * { margin-top: 0.625rem; }
+
+/* ── Preferences: motion ───────────────────────────────────────────── */
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

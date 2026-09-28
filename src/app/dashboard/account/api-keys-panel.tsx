@@ -156,8 +156,8 @@ export function ApiKeysPanel() {
                 onChange={(e) => setProviderName(e.target.value)}
               >
                 <option value="OpenAI">OpenAI</option>
-                <option value="Anthropic" disabled>Anthropic (Coming Soon)</option>
-                <option value="Gemini" disabled>Gemini (Coming Soon)</option>
+                <option value="Anthropic">Anthropic</option>
+                <option value="Gemini">Google Gemini</option>
               </select>
             </div>
             
@@ -165,7 +165,7 @@ export function ApiKeysPanel() {
               <label className="text-sm font-medium text-white">API Key</label>
               <Input 
                 type="password"
-                placeholder="sk-..." 
+                placeholder={providerName === "OpenAI" ? "sk-..." : providerName === "Anthropic" ? "sk-ant-..." : "AIza..."}
                 className="bg-black/40 border-white/10 text-white font-mono"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}

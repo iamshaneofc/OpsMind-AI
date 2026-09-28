@@ -16,7 +16,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var p=JSON.parse(localStorage.getItem("opsmind.preferences")||"{}");var r=document.documentElement;' +
+              'r.dataset.accent=p.accent||"indigo";r.dataset.density=p.density||"comfortable";r.dataset.motion=p.motion||"full";}catch(e){}',
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

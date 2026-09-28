@@ -1,4 +1,5 @@
 import { AppRole } from "@/types/auth";
+import { canAccessSection } from "@/services/permissions";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -22,6 +23,15 @@ export const allItems = [
   { name: "Settings", href: "/dashboard/account", icon: User },
 ];
 
+/** Map a nav href to the section key used by canAccessSection(). */
+function sectionKeyFor(href: string): string {
+  const parts = href.split("/").filter(Boolean);
+  if (parts.length <= 1) return "dashboard";
+  return parts[parts.length - 1];
+}
+
 export function getNavItems(role: AppRole) {
-  return allItems;
+  // Nav visibility is derived from the same canAccessSection() guard the
+  // permissions matrix displays, so the two can never disagree.
+  return allItems.filter((item) => canAccessSection(role, sectionKeyFor(item.href)));
 }

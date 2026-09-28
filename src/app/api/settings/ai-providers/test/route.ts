@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserProfile } from "@/services/auth";
-import { normalizeApiKey } from "@/ai/openai";
-import OpenAI from "openai";
+import { testProviderKey, isProviderName, type ProviderName } from "@/ai/providers";
 
 export async function POST(req: Request) {
   const auth = await getCurrentUserProfile();
@@ -15,21 +14,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const cleanKey = normalizeApiKey(apiKey);
-
-    if (provider === "OpenAI") {
-      const client = new OpenAI({ apiKey: cleanKey, baseURL: "https://api.openai.com/v1" });
-      
-      try {
-        // Lightweight call to verify key
-        await client.models.list();
-        return NextResponse.json({ success: true, message: "Connection successful" });
-      } catch (openAiError: any) {
-        return NextResponse.json({ success: false, error: openAiError.message }, { status: 400 });
-      }
-    } else {
+    if (!isProviderName(provider)) {
       return NextResponse.json({ success: false, error: "Unsupported provider for testing" }, { status: 400 });
     }
+
+    const result = await testProviderKey(provider as ProviderName, apiKey);
+    if (!result.ok) {
+      return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+    }
+    return NextResponse.json({ success: true, message: "Connection successful" });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

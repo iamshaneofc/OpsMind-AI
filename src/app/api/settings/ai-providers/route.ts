@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUserProfile } from "@/services/auth";
-import { normalizeApiKey } from "@/ai/openai";
+import { normalizeApiKey } from "@/ai/api-key";
 
 export async function GET() {
   const auth = await getCurrentUserProfile();

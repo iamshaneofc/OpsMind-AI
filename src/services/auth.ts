@@ -16,9 +16,15 @@ interface ScopeRow {
   role: string | null;
   company_id: string | null;
   warehouse_id: string | null;
+  full_name: string | null;
 }
 
-const EMPTY_SCOPE: ScopeRow = { role: null, company_id: null, warehouse_id: null };
+const EMPTY_SCOPE: ScopeRow = {
+  role: null,
+  company_id: null,
+  warehouse_id: null,
+  full_name: null,
+};
 
 // Single round trip. Cross-region Postgres costs ~150ms per query, so role,
 // company scope and the warehouse bridge are resolved in one statement instead
@@ -29,6 +35,7 @@ async function loadScope(email: string): Promise<ScopeRow> {
       SELECT
         ur.role            AS role,
         u.company_id::text AS company_id,
+        u.full_name        AS full_name,
         w2.id::text        AS warehouse_id
       FROM (SELECT ${email}::text AS email) e
       LEFT JOIN "UserRole"  ur ON ur.email = e.email
@@ -42,6 +49,12 @@ async function loadScope(email: string): Promise<ScopeRow> {
     console.error("Error fetching user scope from DB:", e);
     return EMPTY_SCOPE;
   }
+}
+
+/** Trim and collapse internal whitespace so "RJ  Sherawat" displays cleanly. */
+function normalizeDisplayName(value: string | null | undefined): string {
+  if (!value) return "";
+  return value.replace(/\s+/g, " ").trim();
 }
 
 export const getCurrentUserProfile = cache(
@@ -92,10 +105,23 @@ export const getCurrentUserProfile = cache(
         .catch((e) => console.error("Failed to auto-create UserRole:", e));
     }
 
+    // Display name precedence: the name the user saved to Supabase auth
+    // (raw_user_meta_data, written by POST /api/account/profile), then
+    // public.users.full_name, then the email local part. Previously this was
+    // hardcoded to the email prefix, so a saved name never reached the top-nav.
+    const metaName =
+      typeof (user.user_metadata as { full_name?: unknown } | undefined)?.full_name === "string"
+        ? String((user.user_metadata as { full_name?: string }).full_name)
+        : "";
+    const fullName =
+      normalizeDisplayName(metaName) ||
+      normalizeDisplayName(scope.full_name) ||
+      email.split("@")[0];
+
     const profile: UserProfile = {
       user_id: user.id,
       email: email,
-      full_name: email.split("@")[0],
+      full_name: fullName,
       role_id: role === "admin" ? 1 : role === "manager" ? 2 : 3,
       role: role,
       company_id: scope.company_id,
@@ -113,17 +139,4 @@ export async function requireAuthenticatedUser() {
   const result = await getCurrentUserProfile();
   if (!result) redirect("/login");
   return result;
-}
-
-export function canAccessSection(role: AppRole, section: string) {
-  if (role === "admin") return true;
-  if (role === "manager") {
-    return ["dashboard", "orders", "inventory", "chatbot", "account", "customers", "insights", "reports"].includes(section);
-  }
-  if (role === "analyst") {
-    return ["", "orders", "inventory", "chatbot", "account", "alerts", "customers", "insights", "reports"].includes(
-      section,
-    );
-  }
-  return false;
 }

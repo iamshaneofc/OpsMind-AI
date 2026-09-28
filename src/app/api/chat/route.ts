@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getOpenAIClient } from "@/ai/openai";
+import { getChatProvider, type ChatMessage, type ChatTool } from "@/ai/providers";
 import { aiTools, executeAiTool } from "@/ai/tools";
 import { getCurrentUserProfile } from "@/services/auth";
 
@@ -48,9 +48,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Messages array required" }, { status: 400 });
     }
 
-    let openai;
+    let provider;
     try {
-      openai = await getOpenAIClient();
+      provider = await getChatProvider();
     } catch (error: any) {
       if (error.message === "NO_API_KEY_CONFIGURED") {
         const stream = new ReadableStream({
@@ -64,77 +64,58 @@ export async function POST(req: Request) {
       throw error;
     }
 
+    const systemContent = `${SYSTEM_PROMPT}\nCurrent role: ${profile.role}, company_id: ${profile.company_id ?? "null"}, warehouse_id: ${profile.warehouse_id ?? "null"}`;
+    const systemMessage: ChatMessage = { role: "system", content: systemContent };
+    const history = messages as ChatMessage[];
+
+    const tools: ChatTool[] = Object.entries(aiTools).map(([name, tool]) => ({
+      name,
+      description: tool.description,
+      parameters: tool.parameters,
+    }));
+
     // 1. Initial call to model
-    const initialResponse = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { 
-          role: "system", 
-          content: `${SYSTEM_PROMPT}\nCurrent role: ${profile.role}, company_id: ${profile.company_id ?? "null"}, warehouse_id: ${profile.warehouse_id ?? "null"}` 
-        },
-        ...messages
-      ],
-      tools: Object.entries(aiTools).map(([name, tool]) => ({
-        type: "function",
-        function: { name, description: tool.description, parameters: tool.parameters }
-      })),
-      tool_choice: "auto",
-    });
+    const first = await provider.complete([systemMessage, ...history], tools);
 
-    const responseMessage = initialResponse.choices[0].message;
-
-    // 2. Handle Tool Calls
-    if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-      const toolResults = await Promise.all(
-        responseMessage.tool_calls.map(async (toolCall: any) => {
-          const args = JSON.parse(toolCall.function.arguments);
+    // 2. Execute requested tools, then stream the final answer
+    if (first.tool_calls.length > 0) {
+      const toolResults: ChatMessage[] = await Promise.all(
+        first.tool_calls.map(async (toolCall) => {
+          let args: Record<string, unknown> = {};
+          try {
+            args = JSON.parse(toolCall.function.arguments || "{}");
+          } catch {
+            args = {};
+          }
           const result = await executeAiTool(toolCall.function.name, args, profile);
           return {
-            role: "tool",
+            role: "tool" as const,
             tool_call_id: toolCall.id,
-            content: typeof result === 'string' ? result : JSON.stringify(result)
+            content: typeof result === "string" ? result : JSON.stringify(result),
           };
-        })
+        }),
       );
 
-      // 3. Second call with tool results, streaming the final answer
-      const stream = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          { 
-            role: "system", 
-            content: `${SYSTEM_PROMPT}\nCurrent role: ${profile.role}, company_id: ${profile.company_id ?? "null"}, warehouse_id: ${profile.warehouse_id ?? "null"}` 
-          },
-          ...messages,
-          responseMessage,
-          ...(toolResults as any)
-        ],
-        stream: true,
-      });
+      const stream = await provider.stream([
+        systemMessage,
+        ...history,
+        { role: "assistant", content: first.content, tool_calls: first.tool_calls },
+        ...toolResults,
+      ]);
 
-      const readableStream = new ReadableStream({
-        async start(controller) {
-          for await (const chunk of stream) {
-            const text = chunk.choices[0]?.delta?.content || "";
-            if (text) controller.enqueue(new TextEncoder().encode(text));
-          }
-          controller.close();
-        }
-      });
-
-      return new Response(readableStream, {
+      return new Response(stream, {
         headers: { "Content-Type": "text/plain; charset=utf-8" },
       });
     }
 
-    // 4. No tool calls, just stream a fake single chunk for the frontend
+    // 3. No tool calls - return the answer as a single chunk
     const readableStream = new ReadableStream({
       start(controller) {
-        controller.enqueue(new TextEncoder().encode(responseMessage.content || ""));
+        controller.enqueue(new TextEncoder().encode(first.content || ""));
         controller.close();
-      }
+      },
     });
-    
+
     return new Response(readableStream, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
