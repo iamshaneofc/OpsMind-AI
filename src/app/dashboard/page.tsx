@@ -1,9 +1,14 @@
 import { DashboardRealtime } from "@/components/dashboard/dashboard-realtime";
+import { INDUSTRIES } from "@/lib/industry";
+import { getActiveIndustry } from "@/lib/industry-server";
 import { requireAuthenticatedUser } from "@/services/auth";
 import { getDashboardMetrics } from "@/services/operations";
 
 export default async function DashboardPage() {
   const { profile } = await requireAuthenticatedUser();
+  const industry = getActiveIndustry();
+  const meta = INDUSTRIES[industry];
+
   let metrics = {
     totalOrders: 0,
     inProgress: 0,
@@ -31,6 +36,8 @@ export default async function DashboardPage() {
       companyId={profile.company_id}
       warehouseId={profile.warehouse_id}
       email={profile.email}
+      companyName={meta.companyName}
+      industryLabel={meta.label}
       initialMetrics={metrics}
     />
   );

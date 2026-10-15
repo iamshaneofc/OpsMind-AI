@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireAuthenticatedUser } from "@/services/auth";
 import { prisma } from "@/lib/db";
+import { getActiveIndustry } from "@/lib/industry-server";
 
 export async function GET() {
   try {
-    // The page is reachable by admin, manager and analyst (see canAccessSection),
-    // so any authenticated user may read. Customer has no company/warehouse
-    // column, so there is nothing to scope by — it is globally readable.
     await requireAuthenticatedUser();
+    const industry = getActiveIndustry();
 
     const customers = await prisma.customer.findMany({
+      where: { industry },
       orderBy: { name: "asc" },
     });
 
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { name, email, phone, address } = body;
+    const industry = getActiveIndustry();
 
     if (!name || typeof name !== "string") {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
         email: email?.trim() || null,
         phone: phone?.trim() || null,
         address: address?.trim() || null,
+        industry,
       },
     });
 

@@ -34,6 +34,12 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchCustomers();
+    const onIndustry = () => {
+      setLoading(true);
+      fetchCustomers();
+    };
+    window.addEventListener("opsmind:industry-changed", onIndustry);
+    return () => window.removeEventListener("opsmind:industry-changed", onIndustry);
   }, []);
 
   const filtered = useMemo(() => {

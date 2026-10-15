@@ -14,9 +14,12 @@ model Customer {
   address   String?
   location  String?
   status    String   @default("ACTIVE") // ACTIVE, INACTIVE
+  industry  String   @default("chemical") // chemical, automobile, pharma, agriculture
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orders    Order[]
+
+  @@index([industry])
 }
 
 model Product {
@@ -27,10 +30,13 @@ model Product {
   price       Float
   cost        Float?
   description String?
+  industry    String   @default("chemical")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   orderItems  OrderItem[]
   inventory   InventoryMovement[]
+
+  @@index([industry])
 }
 
 model Warehouse {
@@ -38,10 +44,13 @@ model Warehouse {
   name      String
   location  String
   capacity  Int?
+  industry  String   @default("chemical")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orders    Order[]
   inventory InventoryMovement[]
+
+  @@index([industry])
 }
 
 model Order {
@@ -51,6 +60,7 @@ model Order {
   warehouseId String
   status      String   // PENDING, PROCESSING, SHIPPED, DELIVERED, DELAYED, CANCELLED
   totalAmount Float
+  industry    String   @default("chemical")
   orderDate   DateTime @default(now())
   expectedDelivery DateTime?
   createdAt   DateTime @default(now())
@@ -60,6 +70,10 @@ model Order {
   warehouse   Warehouse   @relation(fields: [warehouseId], references: [id])
   items       OrderItem[]
   invoices    Invoice[]
+
+  @@index([industry])
+  @@index([status])
+  @@index([warehouseId])
 }
 
 model OrderItem {
@@ -81,11 +95,15 @@ model Invoice {
   orderId       String
   amount        Float
   status        String   // PAID, UNPAID, OVERDUE
+  industry      String   @default("chemical")
   dueDate       DateTime
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   order         Order @relation(fields: [orderId], references: [id])
+
+  @@index([industry])
+  @@index([status])
 }
 
 model InventoryMovement {
@@ -94,10 +112,14 @@ model InventoryMovement {
   warehouseId String
   quantity    Int      // Positive for incoming, negative for outgoing
   type        String   // RESTOCK, SALE, ADJUSTMENT, RETURN
+  industry    String   @default("chemical")
   createdAt   DateTime @default(now())
 
   product     Product   @relation(fields: [productId], references: [id])
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@index([industry])
+  @@index([productId, warehouseId])
 }
 
 model AiProviderConfig {

@@ -11,6 +11,7 @@ type Props = {
   inventoryData?: InventoryPoint[];
   revenueSubtitle?: string;
   inventorySubtitle?: string;
+  currencySymbol?: string;
 };
 
 export function InsightsCharts({
@@ -18,15 +19,16 @@ export function InsightsCharts({
   inventoryData = [],
   revenueSubtitle,
   inventorySubtitle,
+  currencySymbol = "₹",
 }: Props) {
   const emptyRevenue = performanceData.length === 0;
   const emptyInventory = inventoryData.length === 0;
   return (
-    <div className="grid gap-6 md:grid-cols-2 mt-8">
-      <Card className="glass-card p-6 h-[350px] flex flex-col hover:border-primary/30">
-        <CardTitle className="text-sm font-medium text-white mb-1">Revenue Trend</CardTitle>
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card className="glass-card flex h-[350px] flex-col border-white/10 p-5 hover:border-primary/30">
+        <CardTitle className="mb-1 text-sm font-medium text-white">Revenue trend</CardTitle>
         <p className="mb-5 text-xs text-muted-foreground">{revenueSubtitle ?? "No data in scope."}</p>
-        <div className="flex-1 w-full h-full min-h-0">
+        <div className="h-full min-h-0 w-full flex-1">
           {emptyRevenue ? (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               No orders in scope yet.
@@ -36,10 +38,11 @@ export function InsightsCharts({
             <LineChart data={performanceData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
               <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+              <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${currencySymbol}${Number(val).toLocaleString("en-IN")}`} />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
                 itemStyle={{ color: '#fff' }}
+                formatter={(value: number) => [`${currencySymbol}${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
               />
               <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
             </LineChart>
@@ -48,8 +51,8 @@ export function InsightsCharts({
         </div>
       </Card>
 
-      <Card className="glass-card p-6 h-[350px] flex flex-col hover:border-primary/30">
-        <CardTitle className="text-sm font-medium text-white mb-1">Stock by Warehouse</CardTitle>
+      <Card className="glass-card flex h-[350px] flex-col border-white/10 p-5 hover:border-primary/30">
+        <CardTitle className="mb-1 text-sm font-medium text-white">Stock by warehouse</CardTitle>
         <p className="mb-5 text-xs text-muted-foreground">{inventorySubtitle ?? "No data in scope."}</p>
         <div className="flex-1 w-full h-full min-h-0">
           {emptyInventory ? (

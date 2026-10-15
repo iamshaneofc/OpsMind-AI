@@ -29,13 +29,19 @@ export function LogoutButton() {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleLogout} disabled={loggingOut}>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleLogout}
+      disabled={loggingOut}
+      className="border-white/10 bg-white/[0.03] hover:bg-white/[0.07]"
+    >
       {loggingOut ? (
         <Loader2 size={14} className="mr-2 animate-spin" />
       ) : (
         <LogOut size={14} className="mr-2" />
       )}
-      {loggingOut ? "Logging out..." : "Logout"}
+      {loggingOut ? "…" : "Logout"}
     </Button>
   );
 }

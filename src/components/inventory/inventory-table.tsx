@@ -98,7 +98,7 @@ export function InventoryTable({ rows }: InventoryTableProps) {
             </div>
           </div>
           <p className="text-3xl font-bold text-white mb-2">
-            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalValue)}
+            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalValue)}
           </p>
           <p className="text-xs text-muted-foreground">
             Based on current stock levels
@@ -180,7 +180,7 @@ export function InventoryTable({ rows }: InventoryTableProps) {
                   <TableHead className="text-white">Product</TableHead>
                   <TableHead className="text-white">SKU</TableHead>
                   <TableHead className="text-white">Warehouse</TableHead>
-                  <TableHead className="text-right text-white">Stock</TableHead>
+                  <TableHead className="text-right text-white">On hand</TableHead>
                   <TableHead className="text-center text-white">Status</TableHead>
                 </TableRow>
               </TableHeader>

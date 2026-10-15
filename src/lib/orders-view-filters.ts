@@ -1,6 +1,7 @@
 /**
  * Pure filters for dashboard ↔ orders tab consistency.
  * Keep in sync with KPI definitions in `getDashboardMetrics`.
+ * Supports both simple demo statuses and legacy ERP-ish status strings.
  */
 export type DashboardOrdersView =
   | "all"
@@ -22,6 +23,8 @@ function isSameLocalDate(a: Date, b: Date) {
 export function isOrdersInProgressStatus(status: string): boolean {
   const s = (status ?? "").toUpperCase();
   return (
+    s === "PENDING" ||
+    s === "PROCESSING" ||
     s.includes("IN_PROGRESS") ||
     s === "IN_PREPARATION" ||
     s === "AWAITING_FACTORY" ||
@@ -33,15 +36,22 @@ export function isOrdersInProgressStatus(status: string): boolean {
 
 export function isOrdersLocalWarehouseStatus(status: string): boolean {
   const s = (status ?? "").toUpperCase();
-  return s === "ORDER_RECEIVED" || s === "ALLOCATED_LOCAL_WAREHOUSE" || s === "IN_PREPARATION";
+  return (
+    s === "PENDING" ||
+    s === "ORDER_RECEIVED" ||
+    s === "ALLOCATED_LOCAL_WAREHOUSE" ||
+    s === "IN_PREPARATION"
+  );
 }
 
 export function isOrdersCentralWarehouseStatus(status: string): boolean {
-  return (status ?? "").toUpperCase() === "ALLOCATED_CENTRAL_WAREHOUSE";
+  const s = (status ?? "").toUpperCase();
+  return s === "PROCESSING" || s === "ALLOCATED_CENTRAL_WAREHOUSE";
 }
 
 export function isOrdersAwaitingFactoryStatus(status: string): boolean {
-  return (status ?? "").toUpperCase() === "AWAITING_FACTORY";
+  const s = (status ?? "").toUpperCase();
+  return s === "DELAYED" || s === "AWAITING_FACTORY";
 }
 
 export function matchesOrdersView(
@@ -52,7 +62,7 @@ export function matchesOrdersView(
 
   const status = (row.status ?? "").toUpperCase();
   if (view === "dispatch-ready") {
-    return status === "DISPATCH_READY" || status.includes("DISPATCH");
+    return status === "SHIPPED" || status === "DISPATCH_READY" || status.includes("DISPATCH");
   }
 
   if (view === "in-progress") {

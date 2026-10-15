@@ -6,23 +6,36 @@ import {
   Package,
   ShoppingCart,
   User,
-  Bell,
   LineChart,
   FileText,
   Users,
   MessageCircle,
+  type LucideIcon,
 } from "lucide-react";
 
-export const allItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Operations", href: "/dashboard/orders", icon: ShoppingCart },
-  { name: "Inventory", href: "/dashboard/inventory", icon: Package },
-  { name: "Customers", href: "/dashboard/customers", icon: Users },
-  { name: "Analytics", href: "/dashboard/insights", icon: LineChart },
-  { name: "Assistant", href: "/dashboard/chatbot", icon: MessageSquare },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
-  { name: "WhatsApp", href: "/dashboard/whatsapp", icon: MessageCircle },
-  { name: "Settings", href: "/dashboard/account", icon: User },
+export type NavItem = {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  group: "workspace" | "intelligence" | "system";
+};
+
+export const allItems: NavItem[] = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, group: "workspace" },
+  { name: "Operations", href: "/dashboard/orders", icon: ShoppingCart, group: "workspace" },
+  { name: "Inventory", href: "/dashboard/inventory", icon: Package, group: "workspace" },
+  { name: "Customers", href: "/dashboard/customers", icon: Users, group: "workspace" },
+  { name: "Insights", href: "/dashboard/insights", icon: LineChart, group: "intelligence" },
+  { name: "Assistant", href: "/dashboard/chatbot", icon: MessageSquare, group: "intelligence" },
+  { name: "Reports", href: "/dashboard/reports", icon: FileText, group: "intelligence" },
+  { name: "WhatsApp", href: "/dashboard/whatsapp", icon: MessageCircle, group: "system" },
+  { name: "Settings", href: "/dashboard/account", icon: User, group: "system" },
+];
+
+export const NAV_GROUPS: Array<{ id: NavItem["group"]; label: string }> = [
+  { id: "workspace", label: "Workspace" },
+  { id: "intelligence", label: "Intelligence" },
+  { id: "system", label: "System" },
 ];
 
 /** Map a nav href to the section key used by canAccessSection(). */

@@ -1,19 +1,28 @@
 "use client";
 
-import { useMemo } from "react";
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { Card, CardTitle } from "@/components/ui/card";
 import type { AppRole } from "@/types/auth";
-import { 
-  ArrowRight, Sparkles, AlertTriangle, Package, 
-  Users, CheckCircle2, MessageSquare 
+import {
+  ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
+  MessageSquare,
+  Package,
+  Sparkles,
+  Truck,
 } from "lucide-react";
+import { cn } from "@/utils/cn";
 
 interface DashboardRealtimeProps {
   role: AppRole;
   companyId: string | null;
   warehouseId: string | null;
   email?: string;
+  companyName?: string;
+  industryLabel?: string;
   initialMetrics: {
     totalOrders: number;
     inProgress: number;
@@ -30,47 +39,108 @@ interface DashboardRealtimeProps {
   };
 }
 
+function greetingForHour(d = new Date()) {
+  const h = d.getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
 
+function inr(n: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
 
 export function DashboardRealtime({
   role,
-  companyId,
-  warehouseId,
   email,
+  companyName = "OpsMind",
+  industryLabel = "Operations",
   initialMetrics,
 }: DashboardRealtimeProps) {
   const metrics = initialMetrics;
-  const firstName = email ? email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').split(' ')[0] : 'Executive';
+  const firstName = email
+    ? email.split("@")[0].replace(/[^a-zA-Z]/g, " ").split(" ")[0]
+    : "Executive";
   const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
 
-  const topSignals = useMemo(() => {
-    const signals: Array<{ label: string; value: number; variant: "secondary" | "warning" | "danger" | "success" }> = [];
-    if (metrics.awaitingFactory > 0) signals.push({ label: "Awaiting factory", value: metrics.awaitingFactory, variant: "warning" });
-    if (metrics.ordersInCentralWarehouse > 0) signals.push({ label: "Central warehouse", value: metrics.ordersInCentralWarehouse, variant: "secondary" });
-    if (metrics.inProgress > 0) signals.push({ label: "In progress", value: metrics.inProgress, variant: "secondary" });
-    if (metrics.ordersInLocalWarehouse > 0) signals.push({ label: "Local warehouse", value: metrics.ordersInLocalWarehouse, variant: "success" });
-    return signals.slice(0, 4);
-  }, [metrics]);
+  const priorityChips = [
+    {
+      label: "Delayed / factory",
+      value: metrics.awaitingFactory,
+      href: "/dashboard/orders",
+      tone: "text-amber-200 bg-amber-500/10 ring-amber-500/25",
+    },
+    {
+      label: "In progress",
+      value: metrics.inProgress,
+      href: "/dashboard/orders?view=in-progress",
+      tone: "text-sky-200 bg-sky-500/10 ring-sky-500/25",
+    },
+    {
+      label: "Local warehouse",
+      value: metrics.ordersInLocalWarehouse,
+      href: "/dashboard/orders",
+      tone: "text-emerald-200 bg-emerald-500/10 ring-emerald-500/25",
+    },
+  ].filter((c) => c.value > 0);
 
   return (
-    <div className="space-y-8 animate-fade-in pb-10">
-      {/* SECTION 1: PERSONALIZED EXECUTIVE HEADER */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-4 border-b border-white/5">
-        <div className="space-y-3">
-          <h1 className="bg-gradient-to-br from-white to-white/70 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
-            Good Morning, {capitalizedName}
-          </h1>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
-            <MessageSquare size={16} />
-            Ask Assistant
-          </button>
-        </div>
-      </div>
+    <div className="space-y-6 animate-fade-in pb-12">
+      <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-white/[0.02] to-transparent p-5 sm:p-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary/90">
+              {industryLabel} · {companyName}
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              {greetingForHour()}, {capitalizedName}
+            </h1>
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+              Live snapshot of orders, stock, and collections. Ask OpsMind to dig into any number.
+            </p>
+            {priorityChips.length > 0 ? (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {priorityChips.map((chip) => (
+                  <Link
+                    key={chip.label}
+                    href={chip.href}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ring-1 transition hover:brightness-110",
+                      chip.tone,
+                    )}
+                  >
+                    <span className="tabular-nums font-semibold">{chip.value}</span>
+                    {chip.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
-      {/* SECTION 1: EXECUTIVE KPI OVERVIEW */}
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/chatbot"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_-12px_rgba(59,130,246,0.8)] transition hover:bg-primary/90"
+            >
+              <MessageSquare size={16} />
+              Ask Assistant
+            </Link>
+            <Link
+              href="/dashboard/insights"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/90 transition hover:bg-white/10"
+            >
+              <Sparkles size={16} className="text-amber-300" />
+              Today&apos;s tips
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <StatsGrid
         role={role}
         totalOrders={metrics.totalOrders}
@@ -85,127 +155,126 @@ export function DashboardRealtime({
         customerGrowth={metrics.customerGrowth}
       />
 
-      {/* SECTION 4: OPERATIONAL HEALTH */}
-      <Card className="glass-card p-6">
-        <CardTitle className="text-lg font-semibold tracking-tight text-white mb-6">Operational Health</CardTitle>
-        <div className="space-y-6">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><CheckCircle2 size={14} className="text-success" /> Fulfillment Rate</span>
-              <span className="text-sm font-bold text-white">{metrics.fulfillmentRate.toFixed(1)}%</span>
-            </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-success rounded-full" style={{ width: `${metrics.fulfillmentRate}%` }}></div>
-            </div>
+      <div className="grid gap-4 lg:grid-cols-5">
+        <Card className="glass-card border-white/10 p-5 lg:col-span-3">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <CardTitle className="text-base font-semibold text-white">Pipeline health</CardTitle>
+            <Link
+              href="/dashboard/orders"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              View operations
+            </Link>
           </div>
-          
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><AlertTriangle size={14} className="text-warning" /> Awaiting Factory</span>
-              <span className="text-sm font-bold text-white">{metrics.awaitingFactory} orders</span>
-            </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-warning rounded-full" style={{ width: `${metrics.totalOrders > 0 ? (metrics.awaitingFactory / metrics.totalOrders) * 100 : 0}%` }}></div>
-            </div>
+          <div className="space-y-5">
+            <HealthRow
+              icon={<CheckCircle2 size={14} className="text-emerald-400" />}
+              label="Fulfillment rate"
+              value={`${metrics.fulfillmentRate.toFixed(1)}%`}
+              pct={metrics.fulfillmentRate}
+              bar="bg-emerald-400"
+            />
+            <HealthRow
+              icon={<AlertTriangle size={14} className="text-amber-400" />}
+              label="Needs attention"
+              value={`${metrics.awaitingFactory} delayed / factory`}
+              pct={
+                metrics.totalOrders > 0
+                  ? (metrics.awaitingFactory / metrics.totalOrders) * 100
+                  : 0
+              }
+              bar="bg-amber-400"
+            />
+            <HealthRow
+              icon={<Package size={14} className="text-sky-400" />}
+              label="In progress"
+              value={`${metrics.inProgress} orders`}
+              pct={
+                metrics.totalOrders > 0 ? (metrics.inProgress / metrics.totalOrders) * 100 : 0
+              }
+              bar="bg-sky-400"
+            />
+            <HealthRow
+              icon={<Truck size={14} className="text-primary" />}
+              label="Central warehouse"
+              value={`${metrics.ordersInCentralWarehouse} orders`}
+              pct={
+                metrics.totalOrders > 0
+                  ? (metrics.ordersInCentralWarehouse / metrics.totalOrders) * 100
+                  : 0
+              }
+              bar="bg-primary"
+            />
           </div>
+        </Card>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Package size={14} className="text-primary" /> In Progress</span>
-              <span className="text-sm font-bold text-white">{metrics.inProgress} orders</span>
+        <Card className="glass-card flex flex-col border-white/10 p-5 lg:col-span-2">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
+              <Sparkles size={15} />
             </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full" style={{ width: `${metrics.totalOrders > 0 ? (metrics.inProgress / metrics.totalOrders) * 100 : 0}%` }}></div>
-            </div>
+            <CardTitle className="text-base font-semibold text-white">Ops briefing</CardTitle>
           </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2"><Users size={14} className="text-purple-400" /> Customers</span>
-              <span className="text-sm font-bold text-white">{metrics.customerGrowth} total</span>
-            </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-purple-400 rounded-full" style={{ width: '100%' }}></div>
-            </div>
-          </div>
-        </div>
-      </Card>
-      <Card className="glass-card flex flex-col p-6 shadow-lg shadow-primary/5">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-primary shadow-[0_0_15px_rgba(79,70,229,0.3)]">
-            <Sparkles size={16} />
-          </div>
-          <CardTitle className="text-lg font-semibold tracking-tight text-white">
-            AI Briefing
-          </CardTitle>
-        </div>
-        
-        <div className="space-y-5 flex-1">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-white flex items-center gap-2">
-              <Package size={14} className="text-primary" />
-              Orders Overview
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {metrics.totalOrders} total orders with {metrics.inProgress} currently in progress.
-              {metrics.awaitingFactory > 0 && ` ${metrics.awaitingFactory} orders awaiting factory processing.`}
-              {metrics.ordersInLocalWarehouse > 0 && ` ${metrics.ordersInLocalWarehouse} orders at local warehouse.`}
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-white flex items-center gap-2">
-              <CheckCircle2 size={14} className="text-success" />
-              Fulfillment
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {metrics.fulfillmentRate.toFixed(1)}% fulfillment rate with {metrics.ordersInCentralWarehouse} orders at central warehouse.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-white flex items-center gap-2">
-              <Users size={14} className="text-primary" />
-              Customer Health
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {metrics.customerGrowth} total customers in the system.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 pt-5 border-t border-white/5">
-          <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">Quick Actions</p>
-          <a href="/dashboard/chatbot" className="flex items-center justify-between rounded-lg bg-white/5 p-3 hover:bg-white/10 transition-colors border border-white/10 cursor-pointer group">
-            <span className="text-sm text-white">Ask AI Assistant</span>
-            <ArrowRight size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
-          </a>
-        </div>
-      </Card>
-
-      {/* SECTION 6: TOP PERFORMERS */}
-      <div className="space-y-4 pt-4">
-        <h3 className="text-lg font-semibold tracking-tight text-white">Top Performers</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="glass-card p-4 hover:border-primary/30 transition-colors">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Total Orders</p>
-            <p className="text-lg font-bold text-white">{metrics.totalOrders.toLocaleString()}</p>
-          </Card>
-          <Card className="glass-card p-4 hover:border-primary/30 transition-colors">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Revenue</p>
-            <p className="text-lg font-bold text-white">${metrics.revenue.toLocaleString()}</p>
-          </Card>
-          <Card className="glass-card p-4 hover:border-primary/30 transition-colors">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Fulfillment Rate</p>
-            <p className="text-lg font-bold text-white">{metrics.fulfillmentRate.toFixed(1)}%</p>
-          </Card>
-          <Card className="glass-card p-4 hover:border-primary/30 transition-colors">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Customers</p>
-            <p className="text-lg font-bold text-white">{metrics.customerGrowth.toLocaleString()}</p>
-          </Card>
-        </div>
+          <ul className="flex-1 space-y-4 text-sm leading-relaxed text-muted-foreground">
+            <li>
+              <span className="font-medium text-white">Book: </span>
+              {metrics.totalOrders.toLocaleString("en-IN")} orders · {inr(metrics.revenue)} order
+              value · {inr(metrics.profit)} collected.
+            </li>
+            <li>
+              <span className="font-medium text-white">Execution: </span>
+              {metrics.fulfillmentRate.toFixed(1)}% delivered. {metrics.inProgress} still moving
+              through the pipeline.
+            </li>
+            <li>
+              <span className="font-medium text-white">Risk: </span>
+              Inventory health {metrics.inventoryHealth}/100
+              {metrics.awaitingFactory > 0
+                ? ` · ${metrics.awaitingFactory} lines need chase.`
+                : "."}
+            </li>
+          </ul>
+          <Link
+            href="/dashboard/chatbot"
+            className="mt-5 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-sm text-white transition hover:border-primary/40 hover:bg-primary/10"
+          >
+            <span>Ask about delayed orders or low stock</span>
+            <ArrowRight size={14} className="text-primary" />
+          </Link>
+        </Card>
       </div>
-      
+    </div>
+  );
+}
+
+function HealthRow({
+  icon,
+  label,
+  value,
+  pct,
+  bar,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  pct: number;
+  bar: string;
+}) {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+          {icon}
+          {label}
+        </span>
+        <span className="text-sm font-semibold tabular-nums text-white">{value}</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div
+          className={cn("h-full rounded-full", bar)}
+          style={{ width: `${Math.min(100, Math.max(2, pct))}%` }}
+        />
+      </div>
     </div>
   );
 }

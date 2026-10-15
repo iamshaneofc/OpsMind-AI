@@ -3,10 +3,16 @@
 ## Local first-time setup
 
 1. **Dependencies:** `npm install`
-2. **Env file:** copy `.env.example` to `.env` and paste your Supabase + OpenAI keys.
+2. **Env file:** copy `.env.example` to `.env` and paste your Supabase + OpenAI keys (`DATABASE_URL` / `DIRECT_URL` required).
 3. **Check:** `npm run local:check` — confirms `.env` and required keys.
-4. **Run app:** `npm run dev` → open [http://localhost:3001](http://localhost:3001).
-5. **Database migrations:** when Supabase is reachable, run new SQL from `supabase/migrations/` in **Dashboard → SQL Editor** (no CLI required).
+4. **Prisma schema (first):** `npm run db:push` — PascalCase demo tables + `industry` columns.  
+   **Warning:** run this *before* ERP migrations. After `public.users` references `auth.users`, `prisma db push` may fail with a cross-schema error — that is expected; do not re-push unless you add `auth` to Prisma schemas.
+5. **ERP + RLS + WhatsApp:** `npm run db:migrate` — applies all files under `supabase/migrations/` (companies, orders, invoices, RLS, `user_whatsapp_accounts`, …). Does not wipe Prisma industry tables.
+6. **Industry demo data:** `npm run seed:industries` — Chemical / Automobile / Pharma / Agriculture packs (~900–1000 orders each).
+7. **Auth bridge:** `npm run seed:auth` — creates demo logins + `UserRole` + `public.users` (super_admin / distributor / warehouse) with a minimal company/warehouse.
+8. **Run app:** `npm run dev` → open [http://localhost:3001](http://localhost:3001).
+
+**Demo logins** (password `OpsMind@12345` unless `SEED_PASSWORD` is set): `admin@opsmind.demo`, `manager@opsmind.demo`, `analyst@opsmind.demo`.
 
 ---
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { SendHorizontal, Sparkles, Trash2, Loader2, ChevronDown, Square, RefreshCw } from "lucide-react";
 import { BotAvatar } from "@/components/bot-avatar";
@@ -692,6 +693,9 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [hydratedMessages, loading]);
 
+  const searchParams = useSearchParams();
+  const askHandledRef = useRef<string | null>(null);
+
   const handleSubmit = useCallback(
     async (event: FormEvent, suggestion?: string) => {
       event.preventDefault();
@@ -770,6 +774,15 @@ export function ChatbotPanel({ initialMessages, userRole }: ChatbotPanelProps) {
     },
     [prompt, loading, abortController, addMessage, setLoading, updateLastAssistantMessage, hydratedMessages],
   );
+
+  useEffect(() => {
+    const ask = searchParams.get("ask");
+    if (!ask || loading) return;
+    if (askHandledRef.current === ask) return;
+    askHandledRef.current = ask;
+    const fakeEvent = { preventDefault() {} } as FormEvent;
+    void handleSubmit(fakeEvent, ask);
+  }, [searchParams, loading, handleSubmit]);
 
   const handleClearChat = useCallback(() => {
     clearMessages();

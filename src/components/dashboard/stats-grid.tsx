@@ -1,9 +1,10 @@
 "use client";
 
-import { Building2, Clock4, Factory, MapPin, Package, TrendingUp, TrendingDown, Users, LineChart as LineChartIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import { Clock4, Factory, Package, TrendingUp, Wallet, Users } from "lucide-react";
 import Link from "next/link";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/utils/cn";
 
 interface StatsGridProps {
   role?: string;
@@ -19,115 +20,151 @@ interface StatsGridProps {
   customerGrowth: number;
 }
 
-// Generate some random sparkline data
-const generateSparkline = (base: number) => {
-  return Array.from({ length: 14 }).map((_, i) => ({
-    value: base + Math.random() * (base * 0.5) - (base * 0.25)
-  }));
-};
+function inr(n: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+function toneForHealth(score: number) {
+  if (score >= 70) return { bar: "bg-emerald-400", text: "text-emerald-300", label: "Healthy" };
+  if (score >= 45) return { bar: "bg-amber-400", text: "text-amber-300", label: "Watch" };
+  return { bar: "bg-rose-400", text: "text-rose-300", label: "At risk" };
+}
+
+function toneForFulfillment(rate: number) {
+  if (rate >= 70) return { bar: "bg-emerald-400", text: "text-emerald-300" };
+  if (rate >= 45) return { bar: "bg-amber-400", text: "text-amber-300" };
+  return { bar: "bg-rose-400", text: "text-rose-300" };
+}
 
 export function StatsGrid(metrics: StatsGridProps) {
+  const inv = toneForHealth(metrics.inventoryHealth);
+  const ful = toneForFulfillment(metrics.fulfillmentRate);
+
   const allItems = [
     {
       key: "revenue" as const,
-      title: "Revenue",
+      title: "Order value",
+      hint: "Open + closed order total",
       icon: TrendingUp,
-      color: "text-emerald-400",
-      bg: "bg-emerald-400/10",
-      href: "/dashboard/insights",
-      sparkline: generateSparkline(120),
-      sparkColor: "#34d399",
-      displayValue: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(metrics.revenue),
+      iconWrap: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/20",
+      href: "/dashboard/orders",
+      displayValue: inr(metrics.revenue),
+      footer: null as ReactNode,
     },
     {
       key: "profit" as const,
-      title: "Profit",
-      icon: LineChartIcon,
-      color: "text-blue-400",
-      bg: "bg-blue-400/10",
+      title: "Collected",
+      hint: "Paid invoices",
+      icon: Wallet,
+      iconWrap: "bg-sky-500/15 text-sky-300 ring-sky-500/20",
       href: "/dashboard/insights",
-      sparkline: generateSparkline(80),
-      sparkColor: "#60a5fa",
-      displayValue: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(metrics.profit),
+      displayValue: inr(metrics.profit),
+      footer: null,
     },
     {
       key: "totalOrders" as const,
-      title: "Total Orders",
+      title: "Orders",
+      hint: `${metrics.inProgress.toLocaleString()} in progress`,
       icon: Package,
-      color: "text-indigo-400",
-      bg: "bg-indigo-400/10",
+      iconWrap: "bg-primary/15 text-primary ring-primary/25",
       href: "/dashboard/orders",
-      sparkline: generateSparkline(100),
-      sparkColor: "#818cf8",
-      displayValue: metrics.totalOrders.toLocaleString(),
+      displayValue: metrics.totalOrders.toLocaleString("en-IN"),
+      footer: null,
     },
     {
       key: "inventoryHealth" as const,
-      title: "Inventory Health",
+      title: "Inventory health",
+      hint: inv.label,
       icon: Factory,
-      color: "text-amber-400",
-      bg: "bg-amber-400/10",
-      href: "/dashboard/inventory",
-      sparkline: generateSparkline(40),
-      sparkColor: "#fbbf24",
-      displayValue: `${metrics.inventoryHealth}/100`,
+      iconWrap: "bg-amber-500/15 text-amber-300 ring-amber-500/20",
+      href: "/dashboard/inventory?view=low-stock",
+      displayValue: `${metrics.inventoryHealth}`,
+      footer: (
+        <div className="mt-3">
+          <div className="mb-1 flex justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span>Score</span>
+            <span className={inv.text}>/ 100</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={cn("h-full rounded-full transition-all", inv.bar)}
+              style={{ width: `${Math.min(100, Math.max(0, metrics.inventoryHealth))}%` }}
+            />
+          </div>
+        </div>
+      ),
     },
     {
       key: "fulfillmentRate" as const,
-      title: "Fulfillment Rate",
+      title: "Fulfillment",
+      hint: "Delivered / total",
       icon: Clock4,
-      color: "text-cyan-400",
-      bg: "bg-cyan-400/10",
-      href: "/dashboard/orders?view=in-progress",
-      sparkline: generateSparkline(95),
-      sparkColor: "#22d3ee",
+      iconWrap: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/20",
+      href: "/dashboard/orders",
       displayValue: `${metrics.fulfillmentRate.toFixed(1)}%`,
+      footer: (
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div
+            className={cn("h-full rounded-full", ful.bar)}
+            style={{ width: `${Math.min(100, Math.max(0, metrics.fulfillmentRate))}%` }}
+          />
+        </div>
+      ),
     },
     {
       key: "customerGrowth" as const,
-      title: "Customers",
+      title: "Accounts",
+      hint: "Active industry book",
       icon: Users,
-      color: "text-purple-400",
-      bg: "bg-purple-400/10",
+      iconWrap: "bg-teal-500/15 text-teal-300 ring-teal-500/20",
       href: "/dashboard/customers",
-      sparkline: generateSparkline(60),
-      sparkColor: "#c084fc",
-      displayValue: metrics.customerGrowth.toLocaleString(),
+      displayValue: metrics.customerGrowth.toLocaleString("en-IN"),
+      footer: null,
     },
   ];
 
-  const items = metrics.role === "analyst" 
-    ? allItems.filter(item => item.key !== "revenue" && item.key !== "profit")
-    : allItems;
+  const items =
+    metrics.role === "analyst"
+      ? allItems.filter((item) => item.key !== "revenue" && item.key !== "profit")
+      : allItems;
 
   return (
-    <div className={`grid gap-4 sm:grid-cols-2 xl:grid-cols-3 ${metrics.role === 'analyst' ? '2xl:grid-cols-4' : '2xl:grid-cols-6'}`}>
+    <div
+      className={cn(
+        "grid gap-3 sm:grid-cols-2 xl:grid-cols-3",
+        metrics.role === "analyst" ? "2xl:grid-cols-4" : "2xl:grid-cols-6",
+      )}
+    >
       {items.map((item) => {
         const Icon = item.icon;
-        const val = metrics[item.key];
         return (
           <Link key={item.key} href={item.href} className="group block h-full">
-            <Card className="glass-card relative flex h-full flex-col hover:-translate-y-1 hover:border-primary/30 transition-all p-5 shadow-lg overflow-hidden">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.bg} border border-white/5`}>
-                  <Icon className={item.color} size={20} />
+            <Card className="glass-card relative flex h-full flex-col overflow-hidden border-white/10 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_12px_40px_-20px_rgba(59,130,246,0.45)]">
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <div
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-xl ring-1",
+                    item.iconWrap,
+                  )}
+                >
+                  <Icon size={18} />
                 </div>
               </div>
-              <div className="space-y-1 z-10">
-                <CardDescription className="font-medium text-muted-foreground uppercase text-xs tracking-wider">
-                  {item.title}
-                </CardDescription>
-                <div className="text-3xl font-bold tracking-tight text-white drop-shadow-md">
-                  {item.displayValue}
-                </div>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 h-16 opacity-30 group-hover:opacity-100 transition-opacity pointer-events-none">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={item.sparkline}>
-                    <Line type="monotone" dataKey="value" stroke={item.sparkColor} strokeWidth={2} dot={false} isAnimationActive={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                {item.title}
+              </p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-white tabular-nums sm:text-[1.65rem]">
+                {item.displayValue}
+                {item.key === "inventoryHealth" ? (
+                  <span className="ml-1 text-sm font-medium text-muted-foreground">/100</span>
+                ) : null}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/90">{item.hint}</p>
+              {item.footer}
             </Card>
           </Link>
         );
