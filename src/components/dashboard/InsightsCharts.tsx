@@ -42,7 +42,7 @@ export function InsightsCharts({
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
                 itemStyle={{ color: '#fff' }}
-                formatter={(value: number) => [`${currencySymbol}${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
+                formatter={(value) => [`${currencySymbol}${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
               />
               <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} />
             </LineChart>
