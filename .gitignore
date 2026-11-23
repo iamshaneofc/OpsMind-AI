@@ -44,3 +44,6 @@ bkp.txt
 
 # opencode
 .opencode/
+
+# local database backups (do not commit)
+/Data_backup/
